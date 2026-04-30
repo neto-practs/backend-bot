@@ -1,0 +1,204 @@
+@baseUrl = http://localhost:4000
+@token = mi_token
+
+### ==========================================
+### TEST 1.1: CAMPO FALTANTE (Validación de Existencia)
+### ==========================================
+# Según el documento, se debe verificar la existencia del campo "message"[cite: 56].
+# Si no existe, el sistema debe devolver un error 400 (Bad Request)[cite: 40].
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "audi a3",
+  "contexto": "amortiguador"
+}
+
+### Prueba directa a la API externa (Búsqueda específica)
+### Búsqueda quirúrgica de 1-2 piezas
+GET https://dev4premium.desguacesyrecambios.com/desguacesv8/api/recambios/piezas/?locale=es&q=motor+arranque+seat+ibiza+6p1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0
+Accept: application/json
+
+### ==========================================
+### TEST 1.2: TIPO DE DATO INCORRECTO
+### ==========================================
+# El sistema solicitará estrictamente una cadena de texto (string)[cite: 57].
+# Aquí enviamos un número. Debería ser rechazado para no gastar recursos[cite: 56].
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": 12345
+}
+
+### ==========================================
+### TEST 1.3: EXCESO DE LONGITUD (Spam de texto)
+### ==========================================
+# Se debe evitar textos masivos estableciendo un máximo (por ejemplo, 400 caracteres)[cite: 58].
+# Este texto tiene más de 400 caracteres. Debe devolver 400 Bad Request.
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor busco un motor"
+}
+
+### ==========================================
+### TEST 1.4: SANITIZACIÓN Y ATAQUE XSS
+### ==========================================
+# Se aplicará una limpieza que elimine etiquetas HTML o scripts para evitar inyecciones[cite: 59, 61].
+# RESULTADO ESPERADO: El backend NO debe fallar. Debe limpiar las etiquetas HTML y procesar solo "busco un motor".
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "<script>alert('hackeado')</script> busco un motor <b>urgente</b>"
+}
+
+### ==========================================
+### TEST 1.5: RATE LIMITING (Protección contra abusos)
+### ==========================================
+# El sistema rastreará la IP y, si envía más de 10 peticiones en 1 minuto, dejará de procesarlas[cite: 66, 67].
+# TRUCO: Haz clic en "Send Request" muy rápido unas 11 veces.
+# RESULTADO ESPERADO: Debes recibir un error HTTP 429[cite: 68].
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "busco faro de golf"
+}
+
+### ==========================================
+### TEST 2.1: NLP LIMPIEZA DE RUIDO Y MISS (Primera búsqueda)
+### ==========================================
+# Vamos a enviarle un texto lleno de "basura" humana (saludos, por favores, mayúsculas).
+# El NLP debe limpiar el ruido , extraer las palabras clave [cite: 45] y hacer la petición.
+# RESULTADO ESPERADO EN CONSOLA: 
+# 1. Verás cómo el texto se reduce a su intención real (ej. "faro golf").
+# 2. Verás un log de "[Cache] MISS" (porque es la primera vez).
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "motor arranque seat ibiza 6p1"
+}
+
+### ==========================================
+### TEST 2.3: INVALIDACIÓN MANUAL DE CACHÉ (Endpoint Admin)
+### ==========================================
+# Usamos la ruta privada protegida por la clave secreta en la cabecera[cite: 104, 105].
+# RESULTADO ESPERADO: Status 200 y el mensaje de éxito.
+# EN CONSOLA: Un log de nivel INFO auditable  que diga "[Cache] FLUSH - Memoria interna liberada" o similar.
+POST {{baseUrl}}/api/chat/cache/flush
+api-key: {{token}}
+x-cache-key: neto_123
+Content-Type: application/json
+
+{}
+
+### ==========================================
+### TEST 2.4: COMPROBACIÓN POST-LIMPIEZA (Efecto en el Flujo)
+### ==========================================
+# Inmediatamente después de la limpieza, la siguiente consulta debe forzar 
+# al Repositorio a hacer una llamada real a la API[cite: 107].
+# Volvemos a pedir los faros. 
+# RESULTADO ESPERADO EN CONSOLA: Debería dar un "[Cache] MISS" rotundo, porque el Test 2.3 lo borró todo.
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "busco faros de golf"
+}
+
+### ==========================================
+### Test 3 HEALTH CHECK (Constantes Vitales)
+### ==========================================
+# No necesita validación del cuerpo porque es un GET.
+# RESULTADO ESPERADO (Happy Path): Status 200 OK
+# Te devolverá un JSON con la memoria RAM, el tiempo encendido y la API en "OK".
+GET {{baseUrl}}/api/health
+
+### ==========================================
+### TEST 4.1: ESCUDO DE VALIDACIÓN (Faltan datos)
+### ==========================================
+# El usuario da información incompleta (solo marca). 
+# El validador (buscarValidacion.js) debe bloquear la llamada a la API externa para ahorrar recursos.
+# RESULTADO ESPERADO: 
+# Respuesta del bot pidiendo el modelo y el artículo. Piezas: null.
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "hola, busco un Seat"
+}
+
+### ==========================================
+### TEST 4.2: REFERENCIA ÚNICA (El Pase VIP puro)
+### ==========================================
+# El usuario da ÚNICAMENTE una referencia. 
+# El escudo debe detectar "referencias.length > 0", devolver esValido: true y dejarla pasar.
+# RESULTADO ESPERADO: 
+# El bot ataca a Dev4Premium y devuelve la pieza exacta. 
+# Mensaje: "He encontrado X piezas en stock con la referencia..."
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "Grapa para montar el paragolpes 7401V2"
+}
+
+### ==========================================
+### TEST 4.3: BÚSQUEDA MIXTA CON REFERENCIA (El Colador Fino)
+### ==========================================
+# El usuario da el nombre de la pieza, el coche y la referencia.
+# El queryBuilder extraerá todo y el chatService limpiará los resultados para dejar SOLO esa referencia.
+# RESULTADO ESPERADO:
+# Deberías recibir los datos, pero OJO: TODAS las tarjetas devueltas deben tener 
+# EXACTAMENTE "A20DTH" en su campo refvisual. ¡Ni una más, ni una menos!
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "caja de precalentamiento A20DTH"
+}
+
+### ==========================================
+### TEST 4.4: REFERENCIA INVENTADA (Manejo de Errores)
+### ==========================================
+# El usuario mete una referencia que cumple las reglas (letras y números, >5 caracteres) pero no existe.
+# La API devolverá vacío. El colador la procesa sin dar error de código.
+# RESULTADO ESPERADO:
+# No debe romperse el servidor. Respuesta educada: "Lo siento, no he encontrado stock exacto para la referencia 9660281080INVENTADA..."
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "busco caja de cambios 9660281080INVENTADA"
+}
+
+### ==========================================
+### TEST 4.5: BÚSQUEDA TRADICIONAL (Sin referencia)
+### ==========================================
+# Búsqueda normal con artículo, marca y modelo.
+# RESULTADO ESPERADO:
+# Si hay más de 20 resultados (sin ser referencia), el bot dirá: "He encontrado demasiadas opciones..."
+# Si hay menos, devolverá las 3 mejores opciones formateadas para React.
+POST {{baseUrl}}/api/chat
+api-key: {{token}}
+Content-Type: application/json
+
+{
+  "message": "faro izquierdo audi a4"
+}

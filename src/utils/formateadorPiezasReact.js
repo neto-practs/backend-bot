@@ -1,0 +1,30 @@
+const formatearParaReact = (arrayPiezas) => {
+  const STORE_URL =
+    process.env.STORE_BASE_URL || "https://dev4premium.desguacesyrecambios.com";
+
+  return arrayPiezas.map((pieza) => {
+    const datosCoche = [pieza.marca, pieza.modelo]
+      .filter((dato) => dato && dato !== "SIN DEFINIR")
+      .join(" ");
+
+    const titulo = `${pieza.articulo} ${datosCoche}`.trim().toUpperCase();
+
+    //Nos aseguramos de que hay identificador
+    const identificador = pieza.url || pieza.idPost || pieza.reflocal;
+
+    // Limpiamos las // que nos puedan dar error
+    const finalUrlLimpio = identificador.toString().replace(/\//g, "");
+
+    const linkCompra = `${STORE_URL}/recambios/${finalUrlLimpio}/`;
+
+    return {
+      id: pieza.idPost || pieza.reflocal,
+      titulo,
+      precio: pieza.precio ? `${pieza.precio}€` : "Consultar",
+      imagen: pieza.imagen,
+      url: linkCompra,
+    };
+  });
+};
+
+module.exports = { formatearParaReact };

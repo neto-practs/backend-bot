@@ -1,0 +1,13 @@
+# Variables de entorno
+.env
+.env.local
+
+# Dependencias
+node_modules/
+__pycache__/
+venv/
+
+# Archivos de logs y build
+*.log
+dist/
+build/

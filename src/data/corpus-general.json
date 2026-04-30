@@ -1,0 +1,85 @@
+{
+  "name": "CorpusGeneralMin",
+  "locale": "es-ES",
+  "data": [
+    {
+      "intent": "greetings.hello",
+      "utterances": [
+        "hola",
+        "buenas",
+        "buenos días",
+        "buenas tardes",
+        "buenas noches",
+        "hey",
+        "saludos"
+      ],
+      "answers": [
+        "¡Hola! Bienvenido a Recambios Neto 👋 ¿Qué pieza necesitas? Dime marca y modelo."
+      ]
+    },
+    {
+      "intent": "greetings.bye",
+      "utterances": [
+        "adiós",
+        "hasta luego",
+        "chao",
+        "nos vemos",
+        "bye",
+        "me voy"
+      ],
+      "answers": [
+        "¡Hasta pronto! Si necesitas algún recambio más adelante, aquí estaremos. ¡Cuídate!"
+      ]
+    },
+    {
+      "intent": "courtesy.positive",
+      "utterances": [
+        "gracias",
+        "muchas gracias",
+        "perfecto",
+        "genial",
+        "muy bien",
+        "ok",
+        "vale",
+        "entendido"
+      ],
+      "answers": [
+        "¡De nada! ¿Buscas alguna otra pieza o te puedo ayudar en algo más?",
+        "¡A ti! ¿Hay algún otro recambio que necesites consultar?"
+      ]
+    },
+    {
+      "intent": "user.angry",
+      "utterances": [
+        "estoy enfadado",
+        "esto es un desastre",
+        "estoy muy enfadado con el servicio",
+        "vaya mierda",
+        "no funciona nada",
+        "fatal el servicio",
+        "sois un desastre"
+      ],
+      "answers": [
+        "Vaya, lo siento muchísimo. No es la experiencia que queremos darte. Cuéntame qué ha pasado e intentamos solucionarlo."
+      ]
+    },
+    {
+      "intent": "dialog.sorry",
+      "utterances": [
+        "lo siento",
+        "perdona",
+        "disculpa",
+        "perdón",
+        "me he equivocado"
+      ],
+      "answers": ["¡No te preocupes para nada! ¿En qué te puedo ayudar?"]
+    },
+    {
+      "intent": "None",
+      "utterances": ["asdfg", "qwerty", "mmm", "nose", "???", "probar"],
+      "answers": [
+        "No te he entendido bien. Por favor, dime qué pieza buscas y para qué coche (marca y modelo) para poder ayudarte."
+      ]
+    }
+  ]
+}
