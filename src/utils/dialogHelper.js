@@ -1,6 +1,6 @@
 /**
  * Genera el texto de respuesta exacto evaluando los vacíos en el estado (NLU).
- * Sigue la cascada estricta: articulo > marca > modelo > año > version > referencia
+ * Sigue la cascada: articulo > marca > modelo > año > version
  * * @param {Object} ctx - El JSON extraído por la IA
  * @returns {string} - El mensaje que leerá el usuario
  */
@@ -14,8 +14,8 @@ const generarRespuestaUsuario = (ctx) => {
     return partes.length > 0 ? ` (${partes.join(" ")})` : "";
   };
 
-  // 1. CORTAFUEGOS DE REFERENCIA OEM:
-  // Si el usuario nos ha dado una referencia directamente, es un "Fast-Track"
+  // 1.REFERENCIA OEM:
+  // Si el usuario da referencia, es un "Fast-Track"
   if (ctx.referencia) {
     const pieza = ctx.articulo ? ctx.articulo : "piezas";
     return `¡Perfecto! Buscando directamente por la referencia OEM ${ctx.referencia}.`;
@@ -26,11 +26,11 @@ const generarRespuestaUsuario = (ctx) => {
 
   // 2. CASCADA DE PRIORIDADES ESTRICTA
   if (!ctx.articulo) {
-    return "¿Qué pieza o recambio estás buscando exactamente?";
+    return "¿Qué pieza o referencia OEM estás buscando exactamente?";
   }
 
   if (!ctx.marca) {
-    return `Anotado: ${pieza}${extraInfo}. Para poder buscarlo, ¿de qué marca es el vehículo (ej. Seat, Audi)?`;
+    return `Anotado: ${pieza}${extraInfo}. Para poder buscarlo, ¿de qué marca es el vehículo?`;
   }
 
   if (!ctx.modelo) {
@@ -38,7 +38,7 @@ const generarRespuestaUsuario = (ctx) => {
       ctx.ano || ctx.version
         ? ` (${[ctx.ano, ctx.version].filter(Boolean).join(" ")})`
         : "";
-    return `Buscando ${pieza} para ${ctx.marca}${extraSinModelo}. ¿Cuál es el modelo exacto (ej. Ibiza, Leon)?`;
+    return `Buscando ${pieza} para ${ctx.marca}${extraSinModelo}. ¿Cuál es el modelo exacto?`;
   }
 
   // --- (Artículo + Marca + Modelo) ---
@@ -48,11 +48,7 @@ const generarRespuestaUsuario = (ctx) => {
   }
 
   if (!ctx.version) {
-    return `Ya casi lo tenemos: ${pieza} para tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}. ¿Qué version o motor tiene (ej. 1.6, 1.9 TDI)?`;
-  }
-
-  if (!ctx.referencia) {
-    return `Tengo todos los datos: ${pieza} para ${ctx.marca} ${ctx.modelo} ${ctx.version} (${ctx.ano}). Para ir a tiro hecho y no fallar, ¿tienes la referencia exacta de la pieza?.`;
+    return `Ya casi lo tenemos: ${pieza} para tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}. ¿Qué version o motor tiene?`;
   }
 
   // BUSQUEDA COMPLETADA AL 100%
