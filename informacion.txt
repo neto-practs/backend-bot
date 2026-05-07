@@ -1,6 +1,6 @@
 # MEGA-INFORME DE AUDITORÍA DEL CHATBOT (50 CASOS)
 
-Fecha: 5/5/2026, 13:02:14
+Fecha: 7/5/2026, 9:16:23
 Resumen: ✅ 43 | ❌ 7 | Total: 50
 
 | #  | Prueba                                  | Entrada                                                     | Respuesta Esperada                                       | Respuesta Aportada                                       | Éxito  |
@@ -29,8 +29,8 @@ Resumen: ✅ 43 | ❌ 7 | Total: 50
 | 22 | C.2 Versión técnica larga               | "es el 2.0 TDI 140cv multitronic"                           | version: 2.0 tdi 140cv multitronic                       | version: 2.0 TDI 140cv multitronic                       | ✅ SÍ   |
 | 23 | C.3 Referencia con guiones              | "busco la 03L-115-389-H"                                    | referencia: 03L115389H                                   | referencia: 03L-115-389-H                                | ❌ NO   |
 | 24 | C.4 Múltiples piezas (extrae principal) | "quiero faros y pilotos"                                    | articulo: faros y pilotos                                | articulo: faros y pilotos                                | ✅ SÍ   |
-| 25 | C.5 Ubicación de pieza                  | "que sea el del lado del conductor"                         | articulo: espejo conductor                               | articulo: lado del conductor                             | ❌ NO   |
-| 26 | C.6 Negación (debe ignorar)             | "que no sea un A3"                                          | {}                                                       | {}                                                       | ✅ SÍ   |
+| 25 | C.5 Ubicación de pieza                  | "que sea el del lado del conductor"                         | articulo: espejo conductor                               | articulo: espejo del lado del conductor                  | ❌ NO   |
+| 26 | C.6 Negación (debe ignorar)             | "que no sea un A3"                                          | {}                                                       | modelo: A3                                               | ❌ NO   |
 | 27 | C.7 Corrección de marca                 | "no, es un Citroen"                                         | marca: Citroen                                           | marca: Citroen                                           | ✅ SÍ   |
 | 28 | C.8 Muletilla 'del mismo'               | "para el mismo año"                                         | ano: 2012                                                | ano: 2012                                                | ✅ SÍ   |
 | 29 | C.9 Solo código motor                   | "motor tipo G9U"                                            | version: G9U                                             | version: G9U                                             | ✅ SÍ   |
@@ -41,7 +41,7 @@ Resumen: ✅ 43 | ❌ 7 | Total: 50
 | 34 | L.4 Referencia muy larga                | "ref ABC1234567890XYZ"                                      | referencia: ABC1234567890XYZ                             | referencia: ABC1234567890XYZ                             | ✅ SÍ   |
 | 35 | L.5 Texto basura masivo                 | "ajskdlfjas lkdfjaskl dfj"                                  | BLOQUEO                                                  | {}                                                       | ✅ SÍ   |
 | 36 | L.6 Solo números (no año)               | "123"                                                       | es_busqueda: true                                        | {}                                                       | ✅ SÍ   |
-| 37 | L.7 Mezcla de idiomas                   | "I need a steering wheel for Audi"                          | articulo: steering wheel, marca: Audi                    | articulo: volante, marca: Audi                           | ❌ NO   |
+| 37 | L.7 Mezcla de idiomas                   | "I need a steering wheel for Audi"                          | articulo: steering wheel, marca: Audi                    | articulo: steering wheel, marca: Audi                    | ✅ SÍ   |
 | 38 | L.8 Typos en marca                      | "es un BWM"                                                 | marca: BMW                                               | marca: BMW                                               | ✅ SÍ   |
 | 39 | L.9 Typos en pieza                      | "busco un alternadror"                                      | articulo: alternador                                     | articulo: alternador                                     | ✅ SÍ   |
 | 40 | L.10 Caracteres especiales              | "faro @ Audi !!!"                                           | articulo: faro, marca: Audi                              | articulo: faro, marca: Audi                              | ✅ SÍ   |

@@ -2,7 +2,6 @@ const axios = require("axios");
 const logger = require("../utils/logger");
 const { ESTADOS_CIRCUITO } = require("../config/constants");
 
-const URL_BASE = process.env.API_URL || "https://dev4.desguacesyrecambios.com/desguacesv8/api/recambios/piezas/";
 
 // Variables del Circuit Breaker (Evita saturar la API si se cae)
 let estadoCircuito = ESTADOS_CIRCUITO.CERRADO;
@@ -12,12 +11,32 @@ let tiempoBloqueoHasta = 0;
 const UMBRAL_FALLOS = Number(process.env.CB_Umbral) || 5; 
 const TIEMPO_RESETEO = Number(process.env.CB_Reset) || 60000;
 
-const consultarAPI = async (parametrosBusqueda, reqId, maxIntentos = 3) => {
+
+/**
+ * Consulta la base de datos de piezas de un cliente específico.
+ * * @param {Object} parametrosBusqueda - Filtros de la pieza (q: "alternador bmw", etc.)
+ * @param {string} reqId - ID de trazabilidad para los logs
+ * @param {Object} cliente - Objeto con la config del cliente (storeUrl, etc.)
+ * @param {number} maxIntentos - Número máximo de reintentos antes de fallar
+ */
+const consultarAPI = async (parametrosBusqueda, reqId, cliente, maxIntentos = 3) => {
   
+  if (!cliente || !cliente.storeUrl) {
+    logger.error({ reqId }, "Falta la configuracion del cliente en apiRepository/{consultarAPI}");
+    throw new Error("Error de configuracion del cliente");
+  }
+
+  //Construimos URL dinámica en la tienda del cliente actual
+  const urlDelCliente = `${cliente.storeUrl}/desguacesv8/api/recambios/piezas/`;
+
+  console.log("==================================================");
+  console.log("URL QUE ESTÁ USANDO EL BOT:", urlDelCliente);
+  console.log("==================================================");
+
   //Control del Circuito: Si está abierto, bloqueamos las peticiones de raíz
   if (estadoCircuito === ESTADOS_CIRCUITO.ABIERTO) {
     if (Date.now() < tiempoBloqueoHasta) {
-      logger.error({ reqId }, "Circuito abierto, peticion rechazada para evitar saturacion.");
+      logger.error({ reqId, url: urlDelCliente }, "Circuito abierto, peticion rechazada para evitar saturacion.");
       throw new Error("Servicio en mantenimiento");
     } 
     estadoCircuito = ESTADOS_CIRCUITO.SEMI_ABIERTO;
@@ -33,7 +52,7 @@ const consultarAPI = async (parametrosBusqueda, reqId, maxIntentos = 3) => {
     try {
       logger.info({ reqId }, `Lanzando peticion a la API (Intento ${i}/${maxIntentos}) -> Query: "${parametrosBusqueda.q || 'vacia'}"`);
 
-      const respuesta = await axios.get(URL_BASE, {
+      const respuesta = await axios.get(urlDelCliente, {
         params: {
           locale: "es",
           ...parametrosBusqueda,
@@ -44,7 +63,7 @@ const consultarAPI = async (parametrosBusqueda, reqId, maxIntentos = 3) => {
       // Si la API responde, pero va lenta, informamos
       const duracion = Date.now() - inicio;
       if (duracion > 3000) {
-        logger.warn({ reqId }, `API lenta: ${duracion}ms`);
+        logger.warn({ reqId, url: urlDelCliente }, `API lenta: ${duracion}ms`);
       }
       
       // La API funciona bien => reseteamos los contadores de fallos
@@ -55,7 +74,7 @@ const consultarAPI = async (parametrosBusqueda, reqId, maxIntentos = 3) => {
 
     } catch (error) {
       const esUltimoIntento = (i === maxIntentos);
-      logger.error({ reqId }, `Error en intento ${i}: ${error.message}`);
+      logger.error({ reqId, url: urlDelCliente }, `Error en intento ${i}: ${error.message}`);
 
       // Si ya hemos gastado todas las oportunidsdes, activamos la alarma
       if (esUltimoIntento) {

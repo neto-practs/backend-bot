@@ -14,7 +14,7 @@ const RUNPOD_IA_TOKEN = process.env.RUNPOD_IA_TOKEN;
 const RUNPOD_IA_MODEL = process.env.RUNPOD_IA_MODEL;
 const AI_TEMPERATURE = parseFloat(process.env.RUNPOD_AI_TEMPERATURE) || 0.0;
 const AI_MAX_TOKENS = parseInt(process.env.RUNPOD_IA_MAX_TOKENS) || 400;
-const STORE_BASE_URL = process.env.STORE_BASE_URL;
+
 
 // Esquema simplificado para extracción pura (Limpiado tras el nuevo plan)
 const GUIDED_JSON_SCHEMA = {
@@ -36,7 +36,8 @@ const GUIDED_JSON_SCHEMA = {
 const seleccionRespuestaPremium = async (
   promptUsuario,
   contextoAnterior = "",
-  reqId = "test",
+  reqId = "test", 
+  cliente
 ) => {
   try {
     logger.info(
@@ -45,7 +46,7 @@ const seleccionRespuestaPremium = async (
     );
 
     // Le pasamos el contexto anterior al prompt para que la IA no trabaje a ciegas
-    const promptDelSistema = getSystemPrompt(STORE_BASE_URL, contextoAnterior || "{}");
+    const promptDelSistema = getSystemPrompt(cliente.storeUrl, contextoAnterior);
 
     const response = await fetch(RUNPOD_IA_URL, {
       method: "POST",
@@ -82,7 +83,6 @@ const seleccionRespuestaPremium = async (
     try {
       intentExtraido = JSON.parse(textoFinal);
 
-      // 🛡️ ESCUDO ANTI-TONTERÍAS DE LA IA
       // Si la IA ha sacado cualquier dato válido, forzamos la búsqueda sí o sí.
       const tieneAlgunDato = intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo || intentExtraido.ano || intentExtraido.version || intentExtraido.referencia;
       if (tieneAlgunDato) {
@@ -144,7 +144,7 @@ const seleccionRespuestaPremium = async (
       )
       .join(" ");
 
-    const cacheKey = generarClaveCache({ q: query });
+    const cacheKey = generarClaveCache({ q: query, clienteId: cliente.id });
     const datosCache = cacheService.obtenerDeCache(cacheKey);
 
     if (datosCache) {
@@ -157,7 +157,7 @@ const seleccionRespuestaPremium = async (
       return datosCache;
     }
 
-    const respuestaAPI = await apiRepository.consultarAPI({ q: query }, reqId);
+    const respuestaAPI = await apiRepository.consultarAPI({ q: query }, reqId, cliente);
     let resultadoFinal;
 
     if (!respuestaAPI.piezas || respuestaAPI.piezas.length === 0) {
@@ -183,7 +183,7 @@ const seleccionRespuestaPremium = async (
   } catch (error) {
     logger.error({ reqId, err: error }, `Fallback a modo FREE.`);
     try {
-      return await seleccionRespuesta(promptUsuario, contextoAnterior, reqId);
+      return await seleccionRespuesta(promptUsuario, contextoAnterior, reqId, cliente);
     } catch (fallbackError) {
       return {
         respuesta: "Servicio temporalmente no disponible.",

@@ -19,7 +19,7 @@ const LIMITE_GENERICO = process.env.LIMITE_GENERICO || 500;
  * @param {string} reqId - Identificador único de la petición para el seguimiento en logs.
  * @returns {Promise<Object>} Un objeto estructurado con la respuesta de texto, las piezas y el nuevo contexto.
  */
-const seleccionRespuesta = async (message, contextoAnterior, reqId) => {
+const seleccionRespuesta = async (message, contextoAnterior, reqId, cliente) => {
   try {
     let textoAProcesar = textNormalize(message);
     const intentBusqueda = ["search.part", "search.vehicle"];
@@ -113,7 +113,7 @@ const seleccionRespuesta = async (message, contextoAnterior, reqId) => {
     }
 
     // Realiza la petición externa a la API del desguace.
-    const respuestaAPI = await apiRepository.consultarAPI({ q: query }, reqId);
+    const respuestaAPI = await apiRepository.consultarAPI({ q: query }, reqId, cliente);
 
     let resultadoFinal;
     const esBusquedaPorReferencia =

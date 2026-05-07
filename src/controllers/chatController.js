@@ -61,16 +61,16 @@ const procesarMensaje = async (req, res) => {
 
       if (MODO_BOT === MODOS_BOT.PREMIUM) {
         // Intentamos respuesta con IA
-      resultadoFinal = await aiService.seleccionRespuestaPremium(mensajeRecibido, contextoAnterior, reqId);
+      resultadoFinal = await aiService.seleccionRespuestaPremium(mensajeRecibido, contextoAnterior, reqId, req.cliente);
 
       // FALLBACK: Si la IA falla (devuelve null), usamos el modo FREE de emergencia
       if (!resultadoFinal) {
         logger.warn({ reqId }, "Fallback: IA no disponible, derivando a modo FREE");
-        resultadoFinal = await chatService.seleccionRespuesta(mensajeRecibido, contextoAnterior, reqId);
+        resultadoFinal = await chatService.seleccionRespuesta(mensajeRecibido, contextoAnterior, reqId, req.cliente);
       }
     } else {
       // Modo gratuito por defecto
-      resultadoFinal = await chatService.seleccionRespuesta(mensajeRecibido, contextoAnterior, reqId);
+      resultadoFinal = await chatService.seleccionRespuesta(mensajeRecibido, contextoAnterior, reqId, req.cliente);
     }
 
     return res.status(200).json(resultadoFinal);

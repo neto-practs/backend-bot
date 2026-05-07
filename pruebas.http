@@ -188,6 +188,7 @@ Content-Type: application/json
   "message": "busco caja de cambios 9660281080INVENTADA"
 }
 
+
 ### ==========================================
 ### TEST 4.5: BÚSQUEDA TRADICIONAL (Sin referencia)
 ### ==========================================
@@ -200,5 +201,27 @@ api-key: {{token}}
 Content-Type: application/json
 
 {
-  "message": "faro izquierdo audi a4"
+  "message": "faro derecho audi a4"
+}
+
+### Petición desde la web de tu cliente REAL
+POST http://localhost:4000/api/chat
+Content-Type: application/json
+Origin: https://mi-web-de-prueba.com
+api-key: 12345
+
+{
+  "message": "necesito un motor para un ford focus",
+  "contexto": ""
+}
+
+### Petición desde la web del cliente INVENTADO (Pepe)
+POST http://localhost:4000/api/chat
+Content-Type: application/json
+Origin: https://www.desguacespepe.com
+api-key: clave_de_pepe
+
+{
+  "message": "necesito un motor para un ford focus",
+  "contexto": ""
 }
