@@ -33,6 +33,9 @@ const GUIDED_JSON_SCHEMA = {
   required: ["respuesta_usuario", "es_busqueda"],
 };
 
+// Función auxiliar para elegir una frase al azar (variedad conversacional)
+const getRandom = (array) => array[Math.floor(Math.random() * array.length)];
+
 const seleccionRespuestaPremium = async (
   promptUsuario,
   contextoAnterior = "",
@@ -99,8 +102,14 @@ const seleccionRespuestaPremium = async (
       quiereBuscar = intentExtraido.es_busqueda && realizarBusqueda;
 
       if (!intentExtraido.es_busqueda) {
-        // MODO CHARLA PURO: Solo entra aquí si no hay absolutamente ningún dato de coche
-        mensajeParaUsuario = intentExtraido.respuesta_usuario || "Dime, ¿en qué más te puedo ayudar?";
+        // MODO CHARLA PURO: Respuestas aleatorias y naturales si no es búsqueda
+        const posiblesRespuestasCharla = [
+          intentExtraido.respuesta_usuario || "¿En qué te puedo ayudar hoy?",
+          "Dime, ¿qué necesitas para tu coche?",
+          "¡Hola! Cuéntame, ¿qué pieza estás buscando?",
+          "Estoy aquí para ayudarte, ¿buscamos alguna pieza?"
+        ];
+        mensajeParaUsuario = getRandom(posiblesRespuestasCharla);
         logger.info({ reqId }, "Modo Conversación. Habla la IA.");
       } else {
         // MODO BÚSQUEDA: IGNORAMOS EL TEXTO DE LA IA SIEMPRE.
@@ -165,7 +174,7 @@ const seleccionRespuestaPremium = async (
         .filter(Boolean)
         .join(" ");
       resultadoFinal = {
-        respuesta: `He revisado el almacén buscando "${busquedaBD.articulo || "la pieza"}" para "${cocheDesc}". No tenemos stock disponible.\n\n¿Buscas alguna otra pieza?`,
+        respuesta: `He revisado el almacén buscando "${busquedaBD.articulo || "tu pieza"}" para "${cocheDesc || "para el vehiculo deseado"}". Pero actualmente no tenemos stock disponible.\n\n¿Buscas alguna otra pieza?`,
         piezas: [],
         nuevoContexto: JSON.stringify(busquedaBD),
       };
