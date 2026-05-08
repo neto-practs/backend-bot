@@ -9,6 +9,7 @@ const { notFoundHandler, globalErrorHandler } = require("./middlewares/errorHand
 const { trainNLP } = require("./services/intentService");
 const requestLogger = require("./middlewares/requestLogger");
 const { checkHealth } = require("./controllers/healthController");
+const { getClienteByOrigin } = require("./config/clientes");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -17,7 +18,24 @@ const PORT = process.env.PORT || 4000;
 app.set("trust proxy", 1);
 
 //Configuración básica (aceptar a react en la web + entenderlo)
-app.use(cors());
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    // Buscamos el Origin en nuestro archivo de clientes autorizados
+    const cliente = getClienteByOrigin(origin);
+    
+    if (cliente) {
+      // Si el cliente existe, el CORS le abre la puerta
+      callback(null, true);
+    } else {
+      // Si no existe, el navegador bloquea la petición antes de que llegue a tu servidor
+      callback(new Error('Bloqueado por CORS: Dominio no registrado.'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
 //Middlewares Globales
