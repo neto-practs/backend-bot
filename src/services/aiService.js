@@ -120,23 +120,27 @@ const seleccionRespuestaPremium = async (
       mensajeParaUsuario = textoFinal;
     }
 
-    // Validación de mínimos para búsqueda
+    // Validación de mínimos para búsqueda (CASCADA COMPLETA)
     if (quiereBuscar && busquedaBD) {
-      const tieneTridente =
-        busquedaBD.articulo && busquedaBD.marca && busquedaBD.modelo;
+      const tieneCascadaCompleta =
+        busquedaBD.articulo && 
+        busquedaBD.marca && 
+        busquedaBD.modelo &&
+        busquedaBD.ano;
+
       const tieneReferencia = !!busquedaBD.referencia;
 
-      if (!tieneTridente && !tieneReferencia) {
+      // Si no tiene los 5 datos y no tiene referencia OEM, bloqueamos la llamada a la API
+      if (!tieneCascadaCompleta && !tieneReferencia) {
         logger.warn(
           { reqId },
-          "Busqueda bloqueada por falta de datos minimos.",
+          "Busqueda bloqueada: Faltan datos para la cascada completa.",
         );
         quiereBuscar = false;
-        // Volvemos a asegurar que pregunte lo que falta en lugar de imprimir "Datos extraídos"
+        // Obligamos al dialogHelper a hacer la siguiente pregunta
         mensajeParaUsuario = generarRespuestaUsuario(busquedaBD);
       }
     }
-
     if (!quiereBuscar) {
       return {
         respuesta: mensajeParaUsuario,

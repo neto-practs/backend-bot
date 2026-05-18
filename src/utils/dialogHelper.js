@@ -5,6 +5,9 @@
  * @returns {string} - El mensaje que leerá el usuario
  */
 const generarRespuestaUsuario = (ctx) => {
+
+  const getFraseRandom = (array) => array[Math.floor(Math.random() * array.length)];
+
   // Helper para recordar datos parciales sin sonar tonto
   const construirExtra = () => {
     let partes = [];
@@ -17,20 +20,38 @@ const generarRespuestaUsuario = (ctx) => {
   // 1.REFERENCIA OEM:
   // Si el usuario da referencia, es un "Fast-Track"
   if (ctx.referencia) {
-    const pieza = ctx.articulo ? ctx.articulo : "piezas";
-    return `¡Perfecto! Buscando directamente por la referencia OEM ${ctx.referencia}.`;
+    const arrReferencia = [
+      `¡Perfecto! Buscando directamente por la referencia OEM ${ctx.referencia}.`,
+      `¡Genial! Con la referencia ${ctx.referencia} iremos directos al grano.`,
+      `Procesando búsqueda rápida en el almacén con la referencia ${ctx.referencia}...`,
+      `Anotado. Voy a consultar stock para la referencia exacta: ${ctx.referencia}.`
+    ];
+
+      return getFraseRandom(arrReferencia);
   }
 
-  const pieza = ctx.articulo || "la pieza";
+  const pieza = ctx.articulo || "este recambio";
   const extraInfo = construirExtra();
 
   // 2. CASCADA DE PRIORIDADES ESTRICTA
   if (!ctx.articulo) {
-    return "¿Qué pieza o referencia OEM estás buscando exactamente?";
+    const arrNoArticulo = [
+      "¿Qué pieza o referencia OEM estás buscando exactamente?",
+      "¡Hola! Dime, ¿qué recambio necesitas para tu vehículo?",
+      "¿En qué pieza te puedo ayudar a buscar hoy?",
+      "Para empezar a buscar, ¿me podrías indicar qué pieza necesitas?"
+    ];
+    return getFraseRandom(arrNoArticulo);
   }
 
   if (!ctx.marca) {
-    return `Anotado: ${pieza}${extraInfo}. Para poder buscarlo, ¿de qué marca es el vehículo?`;
+    const arrNoMarca = [
+      `Anotado: buscar ${pieza}${extraInfo}. Para poder afinar, ¿de qué marca es el vehículo?`,
+      `¡Perfecto! Buscaremos ${pieza}${extraInfo}. ¿Me dices la marca del coche?`,
+      `Para asegurarme de encontrar stock compatible de ${pieza}${extraInfo}, ¿qué marca es?`,
+      `Ya tengo apuntado que buscas ${pieza}${extraInfo}. ¿Para qué marca lo necesitas?`
+    ];
+    return getFraseRandom(arrNoMarca);
   }
 
   if (!ctx.modelo) {
@@ -38,21 +59,49 @@ const generarRespuestaUsuario = (ctx) => {
       ctx.ano || ctx.version
         ? ` (${[ctx.ano, ctx.version].filter(Boolean).join(" ")})`
         : "";
-    return `Buscando ${pieza} para ${ctx.marca}${extraSinModelo}. ¿Cuál es el modelo exacto?`;
+    const arrNoModelo = [
+      `Buscando ${pieza} para ${ctx.marca}${extraSinModelo}. ¿Cuál es el modelo exacto?`,
+      `¡Genial, un ${ctx.marca}! ¿Me indicas el modelo para buscar ${pieza}${extraSinModelo}?`,
+      `Para afinar la búsqueda de ${pieza} en tu ${ctx.marca}${extraSinModelo}, ¿qué modelo es?`,
+      `Tengo la marca (${ctx.marca}), pero me falta el modelo exacto para encontrar ${pieza}${extraSinModelo}.`
+    ];
+    return getFraseRandom(arrNoModelo);
   }
 
   // --- (Artículo + Marca + Modelo) ---
 
   if (!ctx.ano) {
-    return `¡Genial! Buscando ${pieza} para tu ${ctx.marca} ${ctx.modelo}. Para asegurar la compatibilidad, ¿de qué año es?`;
+    const arrNoAno = [
+      `¡Genial! Buscando ${pieza} para tu ${ctx.marca} ${ctx.modelo}. Para afinar más la búsqueda, ¿de qué año es?`,
+      `Estupendo, un ${ctx.marca} ${ctx.modelo}. ¿De qué año de fabricación estamos hablando para buscar ${pieza}?`,
+      `Ya casi lo tenemos. Necesitaría el año de tu ${ctx.marca} ${ctx.modelo} para no fallar con la compatibilidad de ${pieza}.`,
+      `Para darte opciones válidas de ${pieza} para tu ${ctx.marca} ${ctx.modelo}, ¿sabrías decirme el año?`
+    ];
+    return getFraseRandom(arrNoAno);
   }
 
   if (!ctx.version) {
-    return `Ya casi lo tenemos: ${pieza} para tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}. ¿Qué version o motor tiene?`;
+    const arrNoVersion = [
+      `Ya casi lo tenemos: ${pieza} para tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}. ¿Qué versión o motor tiene?`,
+      `Perfecto, ${ctx.marca} ${ctx.modelo} del ${ctx.ano}. Para afinar al 100%, ¿me dices la cilindrada o versión del motor?`,
+      `Solo un dato más: ¿Qué motor o versión es tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}?`,
+      `Último paso para encontrar ${pieza}: ¿Qué motor lleva tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}?`
+    ];
+    return getFraseRandom(arrNoVersion);
   }
 
+  // Construimos una frase descriptiva con todos los parámetros presentes (incluso la versión si la dio voluntariamente)
+  let resumenParametros = `${pieza} para ${ctx.marca} ${ctx.modelo}`;
+  if (ctx.version) resumenParametros += ` ${ctx.version}`;
+  if (ctx.ano) resumenParametros += ` del ${ctx.ano}`;
+
   // BUSQUEDA COMPLETADA AL 100%
-  return `¡Búsqueda lista y afinada al máximo! Mostrando resultados para tu ${ctx.marca} ${ctx.modelo}. ¿Te puedo ayudar buscando otra pieza diferente?`;
+  const arrCompletado = [
+    `¡Búsqueda lista y afinada al máximo! Mostrando resultados de ${resumenParametros}. ¿Te puedo ayudar buscando otra pieza diferente?`,
+    `¡Genial! Ya he lanzado la búsqueda de ${resumenParametros}. ¿Necesitas algo más?`,
+    `Perfecto, aquí tienes los resultados de ${resumenParametros}. ¿Hay alguna otra pieza que busques?`
+  ];
+  return getFraseRandom(arrCompletado);
 };
 
 module.exports = { generarRespuestaUsuario };
