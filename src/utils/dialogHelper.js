@@ -35,6 +35,17 @@ const generarRespuestaUsuario = (ctx) => {
 
   // 2. CASCADA DE PRIORIDADES ESTRICTA
   if (!ctx.articulo) {
+    if (ctx.marca) {
+      const vehiculo = [ctx.marca, ctx.modelo].filter(Boolean).join(" ");
+      const arrConMarca = [
+        `Veo que buscas recambios para un ${vehiculo}. ¿Qué pieza o referencia necesitas exactamente?`,
+        `¡Perfecto, un ${vehiculo}! ¿Qué pieza estás buscando para él?`,
+        `Tengo anotado que es un ${vehiculo}. ¿Me dices qué recambio te hace falta?`,
+        `Para tu ${vehiculo}, ¿qué pieza o referencia OEM necesitas que busque?`
+      ];
+      return getFraseRandom(arrConMarca);
+    }
+
     const arrNoArticulo = [
       "¿Qué pieza o referencia OEM estás buscando exactamente?",
       "¡Hola! Dime, ¿qué recambio necesitas para tu vehículo?",
@@ -74,7 +85,7 @@ const generarRespuestaUsuario = (ctx) => {
     const arrNoAno = [
       `¡Genial! Buscando ${pieza} para tu ${ctx.marca} ${ctx.modelo}. Para afinar más la búsqueda, ¿de qué año es?`,
       `Estupendo, un ${ctx.marca} ${ctx.modelo}. ¿De qué año de fabricación estamos hablando para buscar ${pieza}?`,
-      `Ya casi lo tenemos. Necesitaría el año de tu ${ctx.marca} ${ctx.modelo} para no fallar con la compatibilidad de ${pieza}.`,
+      `Ya casi lo tenemos. Necesitaría el año de tu ${ctx.marca} ${ctx.modelo} para no fallar con la busqueda de ${pieza}.`,
       `Para darte opciones válidas de ${pieza} para tu ${ctx.marca} ${ctx.modelo}, ¿sabrías decirme el año?`
     ];
     return getFraseRandom(arrNoAno);

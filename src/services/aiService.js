@@ -8,6 +8,7 @@ const { fusionarContexto } = require("../utils/contextHelper");
 const { seleccionRespuesta } = require("./chatService");
 const { VALORES_NULOS } = require("../config/constants");
 const { generarRespuestaUsuario } = require("../utils/dialogHelper");
+const { validarYCorregir } = require("../utils/correctorOrtografico");
 
 const RUNPOD_IA_URL = process.env.RUNPOD_IA_URL;
 const RUNPOD_IA_TOKEN = process.env.RUNPOD_IA_TOKEN;
@@ -15,8 +16,7 @@ const RUNPOD_IA_MODEL = process.env.RUNPOD_IA_MODEL;
 const AI_TEMPERATURE = parseFloat(process.env.RUNPOD_AI_TEMPERATURE) || 0.0;
 const AI_MAX_TOKENS = parseInt(process.env.RUNPOD_IA_MAX_TOKENS) || 400;
 
-
-// Esquema simplificado para extracción pura (Limpiado tras el nuevo plan)
+// Esquema simplificado para extracción pura
 const GUIDED_JSON_SCHEMA = {
   type: "object",
   properties: {
@@ -33,22 +33,19 @@ const GUIDED_JSON_SCHEMA = {
   required: ["respuesta_usuario", "es_busqueda"],
 };
 
-// Función auxiliar para elegir una frase al azar (variedad conversacional)
+// Función auxiliar para aportar variedad conversacional
 const getRandom = (array) => array[Math.floor(Math.random() * array.length)];
 
 const seleccionRespuestaPremium = async (
   promptUsuario,
   contextoAnterior = "",
-  reqId = "test", 
+  reqId = "test",
   cliente
 ) => {
   try {
-    logger.info(
-      { reqId },
-      `Iniciando peticion a vLLM (Modelo: ${RUNPOD_IA_MODEL})...`,
-    );
+    logger.info({ reqId }, `Iniciando peticion a vLLM (Modelo: ${RUNPOD_IA_MODEL})...`);
 
-    // Le pasamos el contexto anterior al prompt para que la IA no trabaje a ciegas
+    // Inyectamos el contexto de conversaciones anteriores en el prompt
     const promptDelSistema = getSystemPrompt(cliente.storeUrl, contextoAnterior);
 
     const response = await fetch(RUNPOD_IA_URL, {
@@ -86,23 +83,45 @@ const seleccionRespuestaPremium = async (
     try {
       intentExtraido = JSON.parse(textoFinal);
 
-      // Si la IA ha sacado cualquier dato válido, forzamos la búsqueda sí o sí.
+      // Si la IA ha extraído algún campo de búsqueda, forzamos el modo búsqueda
       const tieneAlgunDato = intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo || intentExtraido.ano || intentExtraido.version || intentExtraido.referencia;
       if (tieneAlgunDato) {
         intentExtraido.es_busqueda = true;
       }
 
-      // APLICAR LÓGICA DE CASCADA ESTRICTA
+      // Paso 1: Fusionar el contexto extraído con el historial de la conversación
       const { contexto, realizarBusqueda } = fusionarContexto(
         contextoAnterior,
-        intentExtraido,
+        intentExtraido
       );
 
-      busquedaBD = contexto;
-      quiereBuscar = intentExtraido.es_busqueda && realizarBusqueda;
+      // Paso 2: Decidir si estamos en modo búsqueda basado en la IA o en la MEMORIA acumulada
+      const tieneDatosEnMemoria = !!(contexto.articulo || contexto.marca || contexto.modelo || contexto.referencia);
+      const esModoBusqueda = (intentExtraido.es_busqueda || tieneDatosEnMemoria) && realizarBusqueda;
 
-      if (!intentExtraido.es_busqueda) {
-        // MODO CHARLA PURO: Respuestas aleatorias y naturales si no es búsqueda
+      // Paso 3: Validar y corregir ortografía si estamos en modo búsqueda
+      if (esModoBusqueda) {
+        const resultadoFiltro = validarYCorregir(contexto);
+        
+        // Actualizamos el contexto con lo que se haya podido corregir/validar
+        busquedaBD = resultadoFiltro.contextoCorregido || contexto;
+
+        // Si se detecta un error grave de ortografía, se aborta la cascada
+        if (resultadoFiltro.error) {
+           return {
+             respuesta: resultadoFiltro.mensaje,
+             piezas: [],
+             nuevoContexto: JSON.stringify(busquedaBD)
+           };
+        }
+      } else {
+        busquedaBD = contexto;
+      }
+
+      quiereBuscar = esModoBusqueda && realizarBusqueda;
+
+      if (!esModoBusqueda) {
+        // Modo conversación: Solo si no hay una búsqueda activa ni datos en memoria
         const posiblesRespuestasCharla = [
           intentExtraido.respuesta_usuario || "¿En qué te puedo ayudar hoy?",
           "Dime, ¿qué necesitas para tu coche?",
@@ -112,7 +131,7 @@ const seleccionRespuestaPremium = async (
         mensajeParaUsuario = getRandom(posiblesRespuestasCharla);
         logger.info({ reqId }, "Modo Conversación. Habla la IA.");
       } else {
-        // MODO BÚSQUEDA: IGNORAMOS EL TEXTO DE LA IA SIEMPRE.
+        // Modo búsqueda: El dialogHelper toma el control de las preguntas basadas en la memoria (busquedaBD)
         mensajeParaUsuario = generarRespuestaUsuario(busquedaBD);
       }
     } catch (e) {
@@ -120,27 +139,25 @@ const seleccionRespuestaPremium = async (
       mensajeParaUsuario = textoFinal;
     }
 
-    // Validación de mínimos para búsqueda (CASCADA COMPLETA)
+    // Validación de mínimos (Seguro de cascada)
     if (quiereBuscar && busquedaBD) {
       const tieneCascadaCompleta =
-        busquedaBD.articulo && 
-        busquedaBD.marca && 
+        busquedaBD.articulo &&
+        busquedaBD.marca &&
         busquedaBD.modelo &&
         busquedaBD.ano;
 
       const tieneReferencia = !!busquedaBD.referencia;
 
-      // Si no tiene los 5 datos y no tiene referencia OEM, bloqueamos la llamada a la API
+      // Se bloquea la consulta a BBDD si no se cumplen los requisitos mínimos
       if (!tieneCascadaCompleta && !tieneReferencia) {
-        logger.warn(
-          { reqId },
-          "Busqueda bloqueada: Faltan datos para la cascada completa.",
-        );
+        logger.warn({ reqId }, "Busqueda bloqueada: Faltan datos para la cascada completa.");
         quiereBuscar = false;
-        // Obligamos al dialogHelper a hacer la siguiente pregunta
         mensajeParaUsuario = generarRespuestaUsuario(busquedaBD);
       }
     }
+
+    // Retorno temprano si no se cumplen los requisitos para consultar BBDD
     if (!quiereBuscar) {
       return {
         respuesta: mensajeParaUsuario,
@@ -149,12 +166,9 @@ const seleccionRespuestaPremium = async (
       };
     }
 
-    // Proceder con la búsqueda en la base de datos
+    // Ejecución de la búsqueda en la API
     const query = Object.values(busquedaBD)
-      .filter(
-        (val) =>
-          val !== null && val !== VALORES_NULOS.STRING_NULL && val !== "",
-      )
+      .filter((val) => val !== null && val !== VALORES_NULOS.STRING_NULL && val !== "")
       .join(" ");
 
     const cacheKey = generarClaveCache({ q: query, clienteId: cliente.id });
@@ -162,7 +176,6 @@ const seleccionRespuestaPremium = async (
 
     if (datosCache) {
       logger.info({ reqId }, "Cache HIT.");
-
       if (datosCache.piezas && datosCache.piezas.length > 0) {
         datosCache.respuesta = mensajeParaUsuario;
       }
@@ -174,11 +187,9 @@ const seleccionRespuestaPremium = async (
     let resultadoFinal;
 
     if (!respuestaAPI.piezas || respuestaAPI.piezas.length === 0) {
-      const cocheDesc = [busquedaBD.marca, busquedaBD.modelo, busquedaBD.ano]
-        .filter(Boolean)
-        .join(" ");
+      const cocheDesc = [busquedaBD.marca, busquedaBD.modelo, busquedaBD.ano].filter(Boolean).join(" ");
       resultadoFinal = {
-        respuesta: `He revisado el almacén buscando "${busquedaBD.articulo || "tu pieza"}" para "${cocheDesc || "para el vehiculo deseado"}". Pero actualmente no tenemos stock disponible.\n\n¿Buscas alguna otra pieza?`,
+        respuesta: `He revisado el almacén buscando "${busquedaBD.articulo || "tu pieza"}" para "${cocheDesc || "el vehiculo deseado"}". Pero actualmente no tenemos stock disponible.\n\n¿Buscas alguna otra pieza?`,
         piezas: [],
         nuevoContexto: JSON.stringify(busquedaBD),
       };
