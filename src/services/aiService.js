@@ -89,35 +89,39 @@ const seleccionRespuestaPremium = async (
         intentExtraido.es_busqueda = true;
       }
 
-      // Paso 1: Fusionar el contexto extraído con el historial de la conversación
-      const { contexto, realizarBusqueda } = fusionarContexto(
-        contextoAnterior,
-        intentExtraido
-      );
-
-      // Paso 2: Decidir si estamos en modo búsqueda basado en la IA o en la MEMORIA acumulada
-      const tieneDatosEnMemoria = !!(contexto.articulo || contexto.marca || contexto.modelo || contexto.referencia);
-      const esModoBusqueda = (intentExtraido.es_busqueda || tieneDatosEnMemoria) && realizarBusqueda;
-
-      // Paso 3: Validar y corregir ortografía si estamos en modo búsqueda
-      if (esModoBusqueda) {
-        const resultadoFiltro = validarYCorregir(contexto);
+      // PASO 1: Validar, corregir y recolocar el intento NUEVO (Antes de fusionar)
+      let intentLimpio = intentExtraido;
+      
+      // Si la IA ha detectado que es una búsqueda o ha extraído algún dato, pasamos la Aduana
+      if (intentExtraido.es_busqueda || intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo) {
+        // Le pasamos intentExtraido (solo lo nuevo), NO la memoria mezclada
+        const resultadoFiltro = validarYCorregir(intentExtraido);
         
-        // Actualizamos el contexto con lo que se haya podido corregir/validar
-        busquedaBD = resultadoFiltro.contextoCorregido || contexto;
-
-        // Si se detecta un error grave de ortografía, se aborta la cascada
+        // Si hay una palabra inventada o falta grave, bloqueamos en seco
         if (resultadoFiltro.error) {
            return {
              respuesta: resultadoFiltro.mensaje,
              piezas: [],
-             nuevoContexto: JSON.stringify(busquedaBD)
+             //Devolvemos la memoria vieja intacta para que no se corrompa
+             nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnterior || {})
            };
         }
-      } else {
-        busquedaBD = contexto;
+        // Guardamos el intento ya limpio, con ortografía perfecta y marcas recolocadas
+        intentLimpio = resultadoFiltro.contextoCorregido;
       }
 
+      // PASO 2: fusionamos el contexto LIMPIO con el historial
+      
+      const { contexto, realizarBusqueda } = fusionarContexto(
+        contextoAnterior,
+        intentLimpio
+      );
+
+      // PASO 3: Decidir modo búsqueda y actualizar la base de datos de memoria
+      const tieneDatosEnMemoria = !!(contexto.articulo || contexto.marca || contexto.modelo || contexto.referencia);
+      const esModoBusqueda = (intentExtraido.es_busqueda || tieneDatosEnMemoria) && realizarBusqueda;
+
+      busquedaBD = contexto;
       quiereBuscar = esModoBusqueda && realizarBusqueda;
 
       if (!esModoBusqueda) {

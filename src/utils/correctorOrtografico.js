@@ -153,19 +153,38 @@ const validarYCorregir = (ctx) => {
 
   // Reconstruimos los strings finales
   contextoNuevo.articulo = [...new Set(articulosTemp)].join(" ").trim() || null;
-  contextoNuevo.marca = [...new Set(marcasTemp)].join(" ").trim() || null;
+  // Guardamos las marcas únicas en un array temporal para contarlas
+  const marcasUnicasDetectadas = [...new Set(marcasTemp)];
+  contextoNuevo.marca = marcasUnicasDetectadas.join(" ").trim() || null;
   contextoNuevo.modelo = [...new Set(modelosTemp)].join(" ").trim() || null;
 
+  // Errores ortográficos o palabras inventadas
   if (erroresEncontrados.length > 0) {
     const primerError = erroresEncontrados[0];
-    const valorAVisualizar = originales[primerError.campoOriginal] || primerError.texto;
-    const nombreCampoHumanizado = primerError.campoOriginal === 'articulo' ? 'el artículo' : (primerError.campoOriginal === 'marca' ? 'la marca' : 'el modelo');
+    // Excepción de Inmunidad para Modelos (Solución al Error 2 Crítico)
+    if (primerError.campoOriginal === 'modelo') {
+       contextoNuevo.modelo = originales.modelo; // Si falla en modelo, lo dejamos pasar crudo
+    } else {
+      const valorAVisualizar = originales[primerError.campoOriginal] || primerError.texto;
+      const nombreCampoHumanizado = primerError.campoOriginal === 'articulo' ? 'el artículo' : 'la marca';
 
-    return {
-      error: true,
-      mensaje: `No he logrado entender ${nombreCampoHumanizado}: "${valorAVisualizar}". ¿Podrías reescribirlo para que pueda ayudarte mejor?`,
-      contextoCorregido: contextoNuevo // Mantenemos lo que hayamos podido limpiar de TODOS los campos
-    };
+      return {
+        error: true,
+        mensaje: `No he logrado entender ${nombreCampoHumanizado}: "${valorAVisualizar}". ¿Podrías reescribirlo para que pueda ayudarte mejor?`,
+        contextoCorregido: contextoNuevo
+      };
+    }
+  }
+
+  // 2º Filtro : Bloqueo de marcas múltiples
+  // Si la Aduana ha detectado más de 1 marca válida distinta (Ej. Audi y Volkswagen)
+  if (marcasUnicasDetectadas.length > 1) {
+     logger.warn(`Aduana: Bloqueo por múltiples marcas detectadas: ${contextoNuevo.marca}`);
+     return {
+       error: true,
+       mensaje: `Parece que has mencionado varias marcas a la vez (${marcasUnicasDetectadas.join(", ")}). Por favor, dime solo la marca exacta del vehículo para la que necesitas la pieza.`,
+       contextoCorregido: contextoNuevo // Devolvemos el contexto para no perder la pieza que haya pedido
+     };
   }
 
   return { error: false, contextoCorregido: contextoNuevo };

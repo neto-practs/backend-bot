@@ -2,7 +2,6 @@ const axios = require("axios");
 const logger = require("../utils/logger");
 const { ESTADOS_CIRCUITO } = require("../config/constants");
 
-
 // Variables del Circuit Breaker (Evita saturar la API si se cae)
 let estadoCircuito = ESTADOS_CIRCUITO.CERRADO;
 let fallosConsecutivos = 0;
@@ -10,7 +9,6 @@ let tiempoBloqueoHasta = 0;
 
 const UMBRAL_FALLOS = Number(process.env.CB_Umbral) || 5; 
 const TIEMPO_RESETEO = Number(process.env.CB_Reset) || 60000;
-
 
 /**
  * Consulta la base de datos de piezas de un cliente específico.
@@ -20,7 +18,6 @@ const TIEMPO_RESETEO = Number(process.env.CB_Reset) || 60000;
  * @param {number} maxIntentos - Número máximo de reintentos antes de fallar
  */
 const consultarAPI = async (parametrosBusqueda, reqId, cliente, maxIntentos = 3) => {
-  
   if (!cliente || !cliente.storeUrl) {
     logger.error({ reqId }, "Falta la configuracion del cliente en apiRepository/{consultarAPI}");
     throw new Error("Error de configuracion del cliente");
@@ -103,4 +100,50 @@ function manejarFracaso() {
 // Función auxiliar para pausar la ejecución del código
 const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-module.exports = { consultarAPI };
+/**
+ * Realiza una consulta rápida a la API para devolver 10 opciones disponibles
+ * según el campo que falte en la cascada.
+ */
+const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
+  if (!cliente || !cliente.storeUrl) return [];
+
+  // Construimos la query sumando los datos que ya tenemos (ej: "Alternador Audi")
+  const query = Object.values(busquedaBD)
+    .filter(val => val !== null && val !== "" && val !== "null")
+    .join(" ");
+
+  if (!query) return [];
+
+  try {
+    const urlDelCliente = `${cliente.storeUrl}/desguacesv8/api/recambios/piezas/`;
+    
+    // Hacemos petición ultrarrápida (timeout de 2.5s) para no hacer esperar al chat
+    const respuesta = await axios.get(urlDelCliente, {
+      params: {
+        locale: "es",
+        q: query,
+        limit: 40 // Pedimos pocos registros, suficiente para sacar 5 sugerencias
+      },
+      timeout: 2500 
+    }); 
+
+    const piezas = respuesta.data.piezas || [];
+
+    //Mapeamos solo la columna que nos interesa y borramos valores nulos/vacíos
+    const opciones = piezas
+      .map(p => p[campoFaltante])
+      .filter(val => val && String(val).trim() !== ""); 
+
+    // Extraemos valores únicos y cortamos en 10 opciones como máximo
+    const opcionesUnicas = [...new Set(opciones)].slice(0, 10);
+
+    return opcionesUnicas;
+
+  } catch (error) {
+    // Si esta petición secundaria falla (timeout, BD lenta, etc.), 
+    logger.warn(`API Sugerencias falló silenciosamente para '${campoFaltante}': ${error.message}`);
+    return []; 
+  }
+};
+
+module.exports = { consultarAPI, obtenerSugerencias };
