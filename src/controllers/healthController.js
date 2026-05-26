@@ -12,12 +12,12 @@ const checkHealth = async (req,res) => {
     };
 
     try{
-        //Comprobamos si la API externa está viva
+        //Comprobamos si la API externa está viva con una petición muy ligera
         const urlBase = process.env.API_URL || "https://dev4.desguacesyrecambios.com/desguacesv8/api/recambios/piezas/";
 
         await axios.get(urlBase, {
-            params: { q: "ping" },
-            timeout: 2000
+            params: { locale: "es", limit: 1 }, // Solo pedimos 1 pieza para que responda al instante
+            timeout: 5000 // Si no responde en 5 segundos, algo va mal
         });
 
         //La API está viva

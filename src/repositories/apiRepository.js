@@ -9,6 +9,9 @@ let tiempoBloqueoHasta = 0;
 
 const UMBRAL_FALLOS = Number(process.env.CB_Umbral) || 5; 
 const TIEMPO_RESETEO = Number(process.env.CB_Reset) || 60000;
+// Timeout para la consulta de sugerencias. Se lee del .env al arrancar el servidor.
+// Cualquier rescalado respetará el valor configurado en el entorno.
+const SUGERENCIAS_TIMEOUT_MS = Number(process.env.SUGERENCIAS_TIMEOUT) || 15000;
 
 /**
  * Consulta la base de datos de piezas de un cliente específico.
@@ -101,49 +104,115 @@ function manejarFracaso() {
 const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Realiza una consulta rápida a la API para devolver 10 opciones disponibles
- * según el campo que falte en la cascada.
+ * Mapa: campo de la cascada del bot → campo real en la respuesta de la API.
+ * "ano" es null porque el año NO existe como campo directo — se extrae de la URL.
+ */
+const CAMPO_API = {
+  articulo: "articulo",
+  marca:    "marca",
+  modelo:   "modelo",
+  version:  "version",
+  ano:      null, // Extraído de pieza.url (ej: "...audi-a6-2002-2003-2004-...")
+};
+
+/**
+ * Extrae años de 4 dígitos presentes en la URL o alt de una pieza.
+ * La API incluye los años de compatibilidad dentro del slug de la URL.
+ * Ej: "alternador-audi-a6-2002-2003-2004-9145437" → ["2002", "2003", "2004"]
+ */
+const extraerAnosDePieza = (pieza) => {
+  const texto = pieza.url || pieza.alt || "";
+  const matches = texto.match(/\b(19|20)\d{2}\b/g);
+  return matches ? [...new Set(matches)] : [];
+};
+
+/**
+ * Consulta la API para obtener sugerencias del siguiente campo vacío en la cascada.
+ * Cubre: articulo, marca, modelo, version (campo directo) y ano (extraído de URL).
+ *
+ * @param {Object} busquedaBD    - Contexto actual {articulo, marca, modelo, ano, version}
+ * @param {string} campoFaltante - Campo que necesita sugerencias
+ * @param {Object} cliente       - Config del cliente (storeUrl)
  */
 const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
   if (!cliente || !cliente.storeUrl) return [];
 
-  // Construimos la query sumando los datos que ya tenemos (ej: "Alternador Audi")
-  const query = Object.values(busquedaBD)
-    .filter(val => val !== null && val !== "" && val !== "null")
-    .join(" ");
+  // Validamos que el campo pedido es de la cascada
+  if (!CAMPO_API.hasOwnProperty(campoFaltante)) {
+    logger.warn(`[Sugerencias] Campo desconocido: '${campoFaltante}'`);
+    return [];
+  }
 
-  if (!query) return [];
+  // Construimos la query con los datos ya conocidos para filtrar las sugerencias
+  const partesBusqueda = [
+    busquedaBD.articulo,
+    busquedaBD.marca,
+    busquedaBD.modelo,
+    busquedaBD.ano,
+    busquedaBD.version
+  ].filter(val => val && val !== "null" && val.trim() !== "");
+
+  // Si el usuario pide ayuda desde el principio (contexto vacío), damos opciones populares
+  if (partesBusqueda.length === 0) {
+    if (campoFaltante === "articulo") {
+      return ["Motor", "Alternador", "Faro", "Caja de cambios", "Paragolpes", "Aleta", "Capó", "Retrovisor"];
+    } else if (campoFaltante === "marca") {
+      return ["Audi", "BMW", "Mercedes-Benz", "Seat", "Volkswagen", "Renault", "Peugeot", "Ford"];
+    }
+    return [];
+  }
+
+  const query = partesBusqueda.join(" ");
 
   try {
     const urlDelCliente = `${cliente.storeUrl}/desguacesv8/api/recambios/piezas/`;
-    
-    // Hacemos petición ultrarrápida (timeout de 2.5s) para no hacer esperar al chat
+
+    logger.info(`[Sugerencias] Campo '${campoFaltante}' | query: "${query}" | timeout: ${SUGERENCIAS_TIMEOUT_MS}ms`);
+
     const respuesta = await axios.get(urlDelCliente, {
-      params: {
-        locale: "es",
-        q: query,
-        limit: 40 // Pedimos pocos registros, suficiente para sacar 5 sugerencias
-      },
-      timeout: 2500 
-    }); 
+      params: { locale: "es", q: query, limit: 40 }, // Reducido a 40 para evitar timeouts
+      timeout: SUGERENCIAS_TIMEOUT_MS
+    });
 
     const piezas = respuesta.data.piezas || [];
 
-    //Mapeamos solo la columna que nos interesa y borramos valores nulos/vacíos
-    const opciones = piezas
-      .map(p => p[campoFaltante])
-      .filter(val => val && String(val).trim() !== ""); 
+    logger.info(`[Sugerencias] API respondió con ${piezas.length} piezas para query "${query}"`);
 
-    // Extraemos valores únicos y cortamos en 10 opciones como máximo
-    const opcionesUnicas = [...new Set(opciones)].slice(0, 10);
+    if (piezas.length === 0) {
+      return [];
+    }
 
+    let opcionesUnicas;
+
+    if (campoFaltante === "ano") {
+      const todosLosAnos = piezas.flatMap(extraerAnosDePieza);
+      opcionesUnicas = [...new Set(todosLosAnos)].sort().slice(0, 10);
+    } else {
+      const campoReal = CAMPO_API[campoFaltante];
+      const opciones = piezas
+        .map(p => p[campoReal])
+        .filter(val => val && String(val).trim() !== "" && val !== "SIN DEFINIR");
+      
+      // Limpieza de duplicados ignorando mayúsculas/minúsculas pero preservando formato original
+      const mapaOpciones = new Map();
+      opciones.forEach(opt => {
+        const key = String(opt).trim().toLowerCase();
+        if (!mapaOpciones.has(key)) {
+          mapaOpciones.set(key, String(opt).trim());
+        }
+      });
+      
+      opcionesUnicas = Array.from(mapaOpciones.values()).slice(0, 10);
+    }
+
+    logger.info(`[Sugerencias] ✅ ${opcionesUnicas.length} opciones encontradas para '${campoFaltante}': [${opcionesUnicas.join(", ")}]`);
     return opcionesUnicas;
 
   } catch (error) {
-    // Si esta petición secundaria falla (timeout, BD lenta, etc.), 
-    logger.warn(`API Sugerencias falló silenciosamente para '${campoFaltante}': ${error.message}`);
-    return []; 
+    logger.warn(`[Sugerencias] Falló silenciosamente para '${campoFaltante}': ${error.message}`);
+    return [];
   }
 };
 
 module.exports = { consultarAPI, obtenerSugerencias };
+

@@ -43,6 +43,7 @@ const seleccionRespuesta = async (message, contextoAnterior, reqId, cliente) => 
       return {
         respuesta: analisisNuevoPuro.respuestaAutomatica,
         piezas: [],
+        sugerencias: [],
         nuevoContexto: contextoAnterior,
       };
     }
@@ -86,6 +87,7 @@ const seleccionRespuesta = async (message, contextoAnterior, reqId, cliente) => 
       return {
         respuesta: "",
         piezas: [],
+        sugerencias: [],
         nuevoContexto: contextoAnterior,
       };
     }
@@ -100,6 +102,8 @@ const seleccionRespuesta = async (message, contextoAnterior, reqId, cliente) => 
       );
       return {
         respuesta: validacion.respuesta,
+        piezas: [],
+        sugerencias: [],
         nuevoContexto: textoAProcesar,
       };
     }
@@ -126,12 +130,14 @@ const seleccionRespuesta = async (message, contextoAnterior, reqId, cliente) => 
           respuesta:
             "No he encontrado piezas que existan con estas caracteristicas.",
           piezas: [],
+          sugerencias: [],
           nuevoContexto: contextoAnterior,
         };
       } else {
         resultadoFinal = {
           respuesta: "",
           piezas: [],
+          sugerencias: [],
           nuevoContexto: contextoAnterior,
         };
       }
@@ -164,6 +170,7 @@ const seleccionRespuesta = async (message, contextoAnterior, reqId, cliente) => 
       resultadoFinal = {
         respuesta: respuestaBot,
         piezas: listaFormateada,
+        sugerencias: [],
         metadata: metadataFront,
         nuevoContexto: query,
       };
@@ -180,6 +187,8 @@ const seleccionRespuesta = async (message, contextoAnterior, reqId, cliente) => 
 
     return {
       respuesta: "Lo sentimos ocurrió un error al procesar tu búsqueda",
+      piezas: [],
+      sugerencias: [],
       nuevoContexto: contextoAnterior,
     };
   }

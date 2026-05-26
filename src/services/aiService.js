@@ -7,7 +7,7 @@ const { generarClaveCache } = require("../utils/cacheKeyGenerator");
 const { fusionarContexto } = require("../utils/contextHelper");
 const { seleccionRespuesta } = require("./chatService");
 const { VALORES_NULOS } = require("../config/constants");
-const { generarRespuestaUsuario } = require("../utils/dialogHelper");
+const { generarRespuestaUsuario, determinarCampoFaltante } = require("../utils/dialogHelper");
 const { validarYCorregir } = require("../utils/correctorOrtografico");
 
 const RUNPOD_IA_URL = process.env.RUNPOD_IA_URL;
@@ -16,13 +16,14 @@ const RUNPOD_IA_MODEL = process.env.RUNPOD_IA_MODEL;
 const AI_TEMPERATURE = parseFloat(process.env.RUNPOD_AI_TEMPERATURE) || 0.0;
 const AI_MAX_TOKENS = parseInt(process.env.RUNPOD_IA_MAX_TOKENS) || 400;
 
-// Esquema simplificado para extracción pura
+// Esquema guiado para el vLLM: define la estructura exacta del JSON de salida.
 const GUIDED_JSON_SCHEMA = {
   type: "object",
   properties: {
     respuesta_usuario: { type: "string" },
     _razonamiento: { type: "string" },
     es_busqueda: { type: "boolean" },
+    requiere_sugerencias: { type: "boolean" },
     articulo: { type: ["string", "null"] },
     referencia: { type: ["string", "null"] },
     marca: { type: ["string", "null"] },
@@ -30,7 +31,7 @@ const GUIDED_JSON_SCHEMA = {
     ano: { type: ["string", "null"] },
     version: { type: ["string", "null"] },
   },
-  required: ["respuesta_usuario", "es_busqueda"],
+  required: ["respuesta_usuario", "es_busqueda", "requiere_sugerencias"],
 };
 
 // Función auxiliar para aportar variedad conversacional
@@ -83,49 +84,77 @@ const seleccionRespuestaPremium = async (
     try {
       intentExtraido = JSON.parse(textoFinal);
 
-      // Si la IA ha extraído algún campo de búsqueda, forzamos el modo búsqueda
-      const tieneAlgunDato = intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo || intentExtraido.ano || intentExtraido.version || intentExtraido.referencia;
-      if (tieneAlgunDato) {
-        intentExtraido.es_busqueda = true;
-      }
+      // Normalización de tipos por si el LLM devuelve strings en lugar de booleanos
+      const requiereSugerencias = intentExtraido.requiere_sugerencias === true || intentExtraido.requiere_sugerencias === "true";
 
-      // PASO 1: Validar, corregir y recolocar el intento NUEVO (Antes de fusionar)
-      let intentLimpio = intentExtraido;
-      
-      // Si la IA ha detectado que es una búsqueda o ha extraído algún dato, pasamos la Aduana
-      if (intentExtraido.es_busqueda || intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo) {
-        // Le pasamos intentExtraido (solo lo nuevo), NO la memoria mezclada
-        const resultadoFiltro = validarYCorregir(intentExtraido);
+      // PASO 1: Validación de Aduana (Ortografía y Existencia)
+      // Solo validamos si hay algo que validar (búsqueda activa o campos extraídos)
+      const tieneCamposExtraidos = !!(intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo);
+      let resultadoValidacion = { error: false, contextoCorregido: intentExtraido };
+
+      if (intentExtraido.es_busqueda || tieneCamposExtraidos) {
+        resultadoValidacion = validarYCorregir(intentExtraido);
         
-        // Si hay una palabra inventada o falta grave, bloqueamos en seco
-        if (resultadoFiltro.error) {
-           return {
-             respuesta: resultadoFiltro.mensaje,
-             piezas: [],
-             //Devolvemos la memoria vieja intacta para que no se corrompa
-             nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnterior || {})
-           };
+        // Si la aduana detecta un error (marca mcdonalds, etc.), cortamos aquí.
+        if (resultadoValidacion.error) {
+          logger.warn({ reqId }, `Aduana bloqueó la petición: ${resultadoValidacion.mensaje}`);
+          
+          let ctxAnteriorParsed = {};
+          try { ctxAnteriorParsed = typeof contextoAnterior === "string" ? JSON.parse(contextoAnterior) : (contextoAnterior || {}); } catch(_) {}
+
+          return {
+            respuesta: resultadoValidacion.mensaje,
+            piezas: [],
+            sugerencias: [],
+            campoFaltante: determinarCampoFaltante(ctxAnteriorParsed),
+            pedirSugerencias: false,
+            metadata: { totalReal: 0, queryLimpia: "" },
+            nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnterior || {})
+          };
         }
-        // Guardamos el intento ya limpio, con ortografía perfecta y marcas recolocadas
-        intentLimpio = resultadoFiltro.contextoCorregido;
       }
 
-      // PASO 2: fusionamos el contexto LIMPIO con el historial
-      
-      const { contexto, realizarBusqueda } = fusionarContexto(
+      // PASO 2: Fusión de memoria
+      const { contexto: contextoFusionado, realizarBusqueda: rb } = fusionarContexto(
         contextoAnterior,
-        intentLimpio
+        resultadoValidacion.contextoCorregido
       );
 
-      // PASO 3: Decidir modo búsqueda y actualizar la base de datos de memoria
-      const tieneDatosEnMemoria = !!(contexto.articulo || contexto.marca || contexto.modelo || contexto.referencia);
-      const esModoBusqueda = (intentExtraido.es_busqueda || tieneDatosEnMemoria) && realizarBusqueda;
+      // 🎯 CASO A: SUGERENCIAS EXPLÍCITAS (Usuario bloqueado o pide ayuda)
+      if (requiereSugerencias) {
+        logger.info({ reqId }, "[Bot] requiere_sugerencias activo. Consultando BD para obtener opciones...");
+        
+        const campoFaltante = determinarCampoFaltante(contextoFusionado);
 
-      busquedaBD = contexto;
-      quiereBuscar = esModoBusqueda && realizarBusqueda;
+        // Priorizamos la respuesta que redactó la IA (más natural si el usuario pidió ayuda)
+        const mensajeFinal = intentExtraido.respuesta_usuario || generarRespuestaUsuario(contextoFusionado);
 
-      if (!esModoBusqueda) {
-        // Modo conversación: Solo si no hay una búsqueda activa ni datos en memoria
+        // Llamada real a la BD — basada en la "q" actual (contextoFusionado)
+        const sugerencias = campoFaltante
+          ? await apiRepository.obtenerSugerencias(contextoFusionado, campoFaltante, cliente)
+          : [];
+
+        logger.info({ reqId }, `[Bot] Sugerencias obtenidas: ${sugerencias.length} opciones para '${campoFaltante}'.`);
+
+        return {
+          respuesta: mensajeFinal,
+          piezas: [],
+          sugerencias,
+          campoFaltante,
+          pedirSugerencias: false, 
+          metadata: { totalReal: 0, queryLimpia: "" },
+          nuevoContexto: JSON.stringify(contextoFusionado), 
+        };
+      }
+
+      // 🎯 CASO B: FLUJO NORMAL (Búsqueda o Conversación)
+      busquedaBD = contextoFusionado;
+      
+      const tieneDatosEnMemoria = !!(busquedaBD.articulo || busquedaBD.marca || busquedaBD.modelo || busquedaBD.referencia);
+      quiereBuscar = (intentExtraido.es_busqueda || tieneDatosEnMemoria) && rb;
+
+      if (!quiereBuscar) {
+        // Modo conversación o incompleto
         const posiblesRespuestasCharla = [
           intentExtraido.respuesta_usuario || "¿En qué te puedo ayudar hoy?",
           "Dime, ¿qué necesitas para tu coche?",
@@ -133,9 +162,9 @@ const seleccionRespuestaPremium = async (
           "Estoy aquí para ayudarte, ¿buscamos alguna pieza?"
         ];
         mensajeParaUsuario = getRandom(posiblesRespuestasCharla);
-        logger.info({ reqId }, "Modo Conversación. Habla la IA.");
+        logger.info({ reqId }, "Modo Conversación / Datos insuficientes.");
       } else {
-        // Modo búsqueda: El dialogHelper toma el control de las preguntas basadas en la memoria (busquedaBD)
+        // Modo búsqueda: El dialogHelper toma el control de las preguntas basadas en la memoria
         mensajeParaUsuario = generarRespuestaUsuario(busquedaBD);
       }
     } catch (e) {
@@ -161,11 +190,18 @@ const seleccionRespuestaPremium = async (
       }
     }
 
-    // Retorno temprano si no se cumplen los requisitos para consultar BBDD
+    // Retorno temprano: cascada incompleta, flujo NORMAL.
     if (!quiereBuscar) {
+      const campoFaltante = determinarCampoFaltante(busquedaBD || {});
+      logger.info({ reqId }, `[Bot] Flujo normal — siguiente campo: '${campoFaltante}'. Sin sugerencias.`);
+
       return {
         respuesta: mensajeParaUsuario,
         piezas: [],
+        sugerencias: [],
+        campoFaltante,
+        pedirSugerencias: false,
+        metadata: { totalReal: 0, queryLimpia: "" },
         nuevoContexto: JSON.stringify(busquedaBD || {}),
       };
     }
@@ -184,6 +220,7 @@ const seleccionRespuestaPremium = async (
         datosCache.respuesta = mensajeParaUsuario;
       }
       datosCache.nuevoContexto = JSON.stringify(busquedaBD);
+      datosCache.pedirSugerencias = false;
       return datosCache;
     }
 
@@ -195,12 +232,16 @@ const seleccionRespuestaPremium = async (
       resultadoFinal = {
         respuesta: `He revisado el almacén buscando "${busquedaBD.articulo || "tu pieza"}" para "${cocheDesc || "el vehiculo deseado"}". Pero actualmente no tenemos stock disponible.\n\n¿Buscas alguna otra pieza?`,
         piezas: [],
+        sugerencias: [],
+        pedirSugerencias: false,
         nuevoContexto: JSON.stringify(busquedaBD),
       };
     } else {
       resultadoFinal = {
         respuesta: mensajeParaUsuario,
         piezas: formatearParaReact(respuestaAPI.piezas.slice(0, 4)),
+        sugerencias: [],
+        pedirSugerencias: false,
         metadata: { totalReal: respuestaAPI.total, queryLimpia: query },
         nuevoContexto: JSON.stringify(busquedaBD),
       };
@@ -216,6 +257,7 @@ const seleccionRespuestaPremium = async (
       return {
         respuesta: "Servicio temporalmente no disponible.",
         piezas: [],
+        sugerencias: [],
         nuevoContexto: contextoAnterior,
       };
     }
