@@ -2,20 +2,21 @@ const axios = require("axios");
 const logger = require("../utils/logger");
 const { ESTADOS_CIRCUITO } = require("../config/constants");
 
-// Variables del Circuit Breaker (Evita saturar la API si se cae)
+// Circuit Breaker: evita saturar la API externa si se cae repetidamente.
 let estadoCircuito = ESTADOS_CIRCUITO.CERRADO;
 let fallosConsecutivos = 0;
 let tiempoBloqueoHasta = 0;
 
-const UMBRAL_FALLOS = Number(process.env.CB_Umbral) || 5; 
+const UMBRAL_FALLOS = Number(process.env.CB_Umbral) || 5;
 const TIEMPO_RESETEO = Number(process.env.CB_Reset) || 60000;
-// Timeout para la consulta de sugerencias. Se lee del .env al arrancar el servidor.
-// Cualquier rescalado respetará el valor configurado en el entorno.
-const SUGERENCIAS_TIMEOUT_MS = Number(process.env.SUGERENCIAS_TIMEOUT) || 15000;
+// Leído del .env para que ops pueda ajustarlo sin tocar código.
+const DEFAULT_SUGERENCIAS_TIMEOUT = Number(process.env.SUGERENCIAS_TIMEOUT_MS) || 15000;
+const DEFAULT_API_TIMEOUT = Number(process.env.API_TIMEOUT_MS) || 5000;
+
 
 /**
  * Consulta la base de datos de piezas de un cliente específico.
- * * @param {Object} parametrosBusqueda - Filtros de la pieza (q: "alternador bmw", etc.)
+ * @param {Object} parametrosBusqueda - Filtros de la pieza (q: "alternador bmw", etc.)
  * @param {string} reqId - ID de trazabilidad para los logs
  * @param {Object} cliente - Objeto con la config del cliente (storeUrl, etc.)
  * @param {number} maxIntentos - Número máximo de reintentos antes de fallar
@@ -26,26 +27,22 @@ const consultarAPI = async (parametrosBusqueda, reqId, cliente, maxIntentos = 3)
     throw new Error("Error de configuracion del cliente");
   }
 
-  //Construimos URL dinámica en la tienda del cliente actual
   const urlDelCliente = `${cliente.storeUrl}/desguacesv8/api/recambios/piezas/`;
+  logger.debug({ reqId, url: urlDelCliente }, "URL de destino construida.");
 
-  console.log("==================================================");
-  console.log("URL QUE ESTÁ USANDO EL BOT:", urlDelCliente);
-  console.log("==================================================");
-
-  //Control del Circuito: Si está abierto, bloqueamos las peticiones de raíz
   if (estadoCircuito === ESTADOS_CIRCUITO.ABIERTO) {
     if (Date.now() < tiempoBloqueoHasta) {
       logger.error({ reqId, url: urlDelCliente }, "Circuito abierto, peticion rechazada para evitar saturacion.");
       throw new Error("Servicio en mantenimiento");
-    } 
+    }
     estadoCircuito = ESTADOS_CIRCUITO.SEMI_ABIERTO;
     logger.warn({ reqId }, "Modo SEMI-ABIERTO: Probando si la API ha vuelto a la vida");
   }
 
   const baseMs = 500;
 
-  //Bucle de reintentos en caso de que la red falle puntualmente
+  // Bucle de reintentos con backoff exponencial (500ms, 1000ms, 2000ms...).
+  // Secuencial y no paralelo para no agravar una API ya sobrecargada.
   for (let i = 1; i <= maxIntentos; i++) {
     const inicio = Date.now();
 
@@ -53,36 +50,28 @@ const consultarAPI = async (parametrosBusqueda, reqId, cliente, maxIntentos = 3)
       logger.info({ reqId }, `Lanzando peticion a la API (Intento ${i}/${maxIntentos}) -> Query: "${parametrosBusqueda.q || 'vacia'}"`);
 
       const respuesta = await axios.get(urlDelCliente, {
-        params: {
-          locale: "es",
-          ...parametrosBusqueda,
-        },
-        timeout: Number(process.env.API_TIMEOUT) || 5000,
+        params: { locale: "es", ...parametrosBusqueda },
+        timeout: DEFAULT_API_TIMEOUT,
       });
 
-      // Si la API responde, pero va lenta, informamos
       const duracion = Date.now() - inicio;
       if (duracion > 3000) {
         logger.warn({ reqId, url: urlDelCliente }, `API lenta: ${duracion}ms`);
       }
-      
-      // La API funciona bien => reseteamos los contadores de fallos
+
       fallosConsecutivos = 0;
       estadoCircuito = ESTADOS_CIRCUITO.CERRADO;
-
       return respuesta.data;
 
     } catch (error) {
       const esUltimoIntento = (i === maxIntentos);
       logger.error({ reqId, url: urlDelCliente }, `Error en intento ${i}: ${error.message}`);
 
-      // Si ya hemos gastado todas las oportunidsdes, activamos la alarma
       if (esUltimoIntento) {
         manejarFracaso();
         throw new Error("Servicio temporalmente no disponible");
       }
-      
-      // Backoff Exponencial: El tiempo de espera se duplica por cada fallo (500ms, 1000ms, 2000ms...)
+
       const delay = baseMs * Math.pow(2, i - 1);
       logger.info({ reqId }, `Reintentando en ${delay}ms...`);
       await esperar(delay);
@@ -90,7 +79,7 @@ const consultarAPI = async (parametrosBusqueda, reqId, cliente, maxIntentos = 3)
   }
 };
 
-// Sube el contador de fallos y abre el circuito si superamos el límite
+// Incrementa el contador de fallos y abre el circuito al superar el umbral.
 function manejarFracaso() {
   fallosConsecutivos++;
   if (fallosConsecutivos >= UMBRAL_FALLOS) {
@@ -100,7 +89,6 @@ function manejarFracaso() {
   }
 }
 
-// Función auxiliar para pausar la ejecución del código
 const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
@@ -121,98 +109,225 @@ const CAMPO_API = {
  * Ej: "alternador-audi-a6-2002-2003-2004-9145437" → ["2002", "2003", "2004"]
  */
 const extraerAnosDePieza = (pieza) => {
-  const texto = pieza.url || pieza.alt || "";
+  // La API no expone un campo "año" directo; los años de compatibilidad
+  // están embebidos en el slug de URL (ej: "alternador-audi-a6-2002-2003-2004-9145437").
+  const texto = [pieza.url, pieza.alt].filter(Boolean).join(" ");
   const matches = texto.match(/\b(19|20)\d{2}\b/g);
   return matches ? [...new Set(matches)] : [];
 };
 
 /**
- * Consulta la API para obtener sugerencias del siguiente campo vacío en la cascada.
- * Cubre: articulo, marca, modelo, version (campo directo) y ano (extraído de URL).
+ * Normaliza el texto de la API para usarlo como sugerencia.
+ * Mantiene el valor original (mayúsculas, guiones) para que haga match exacto en la BD.
+ */
+const limpiarTextoParaSugerencia = (texto) => {
+  if (!texto) return null;
+  const limpio = String(texto).trim().replace(/\s+/g, " ");
+  return limpio === "SIN DEFINIR" || limpio === "" ? null : limpio;
+};
+
+// ─── Cabeceras que imitan un navegador real ──────────────────────────────────
+// CRÍTICO: Algunos CDN/proxies de tiendas bloquean peticiones sin User-Agent
+// de navegador. Sin estos headers, la API podría ignorar parámetros de paginación.
+const HEADERS_NAVEGADOR = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  Accept: "application/json, text/plain, */*",
+  "Accept-Language": "es-ES,es;q=0.9",
+};
+
+/**
+ * Mapeo: campo de la cascada del bot → clave de la faceta en la respuesta de la API.
  *
- * @param {Object} busquedaBD    - Contexto actual {articulo, marca, modelo, ano, version}
- * @param {string} campoFaltante - Campo que necesita sugerencias
- * @param {Object} cliente       - Config del cliente (storeUrl)
+ * ESTUDIO DE FACETAS (27-May-2026):
+ *  La API devuelve metadatos de facetas en la PRIMERA petición, junto con las 12 piezas.
+ *  Esto nos permite extraer sugerencias en UNA SOLA petición HTTP para 4 de los 5 campos.
+ *
+ *  Estructura de cada faceta: Array<{ id: number, text: string|number, total: number|string }>
+ *  El elemento [0] de cada array es siempre el encabezado (id=0, text="Modelo", total="Total")
+ *  y debe ser filtrado antes de usar los datos.
+ *
+ *  Disponibilidad por campo:
+ *  ✅ articulo → 'articulos'  Array[n] — texto limpio (ej: "ALTERNADOR")
+ *  ✅ marca    → 'marcas'     Array[n] — texto limpio (ej: "AUDI")
+ *  ✅ modelo   → 'modelos'    Array[n] — ATENCIÓN: text puede ser numérico (100, 8090)
+ *  ✅ version  → 'versiones'  Array[n] — texto limpio (ej: "A6 BERLINA 4B2")
+ *  ⚠️  ano     → 'anyos'      Objeto {min, max} — NO es una lista. Requiere paginación.
+ */
+const FACETA_API = {
+  articulo: "articulos",
+  marca:    "marcas",
+  modelo:   "modelos",
+  version:  "versiones",
+  ano:      null, // La API solo devuelve {min, max}, no una lista de años.
+};
+
+/**
+ * Extrae sugerencias de la faceta correspondiente al campo solicitado.
+ * La API devuelve arrays como: [{id:0, text:"Modelo", total:"Total"}, {id:1, text:"A6", total:15}, ...]
+ * El primer elemento (id=0) es el encabezado → se filtra antes de extraer.
+ * @param {Object} dataAPI - La respuesta completa de la API (respuesta.data)
+ * @param {string} campoFaltante - Campo de la cascada del bot ('marca', 'modelo', etc.)
+ * @param {number} maxSugerencias - Número máximo de sugerencias a devolver
+ * @returns {string[]} Lista de sugerencias limpias, o [] si la faceta está vacía.
+ */
+const extraerDeFaceta = (dataAPI, campoFaltante, maxSugerencias = 15) => {
+  const claveAPI = FACETA_API[campoFaltante];
+  if (!claveAPI) return []; // Campo sin faceta (ej: 'ano')
+
+  const faceta = dataAPI[claveAPI];
+  if (!Array.isArray(faceta) || faceta.length <= 1) return []; // Vacía o solo encabezado
+
+  const sugerencias = [];
+  for (const entrada of faceta) {
+    // Saltar el encabezado (id=0, total="Total")
+    if (entrada.id === 0 || entrada.total === "Total") continue;
+
+    const texto = limpiarTextoParaSugerencia(String(entrada.text));
+    if (!texto) continue;
+
+    sugerencias.push(texto);
+    if (sugerencias.length >= maxSugerencias) break;
+  }
+
+  return sugerencias;
+};
+
+/**
+ * Consulta la API para obtener sugerencias del siguiente campo vacío en la cascada.
+ *
+ * ESTRATEGIA HÍBRIDA (implementada tras estudio de facetas del 27-May-2026):
+ *
+ *  Para campos con faceta (marca, modelo, version, articulo):
+ *    → 1 única petición HTTP. Las facetas contienen TODOS los valores únicos de la BD,
+ *      no solo los 12 de la página actual. Máximo rendimiento.
+ *
+ *  Para el campo 'ano':
+ *    → Bucle de paginación (la API solo da {min, max}, no lista de años).
+ *      Extraemos los años de la URL de cada pieza (ej: "...a6-2002-2003-2004-...").
+ *
+ * PARÁMETROS CLAVE DESCUBIERTOS EN LA SONDA:
+ *  - Parámetro de página correcto: `pagina` (no `page` — ignorado por la API).
+ *  - Límite fijo de 12 piezas por página (sin parámetro de control).
+ *  - ID de pieza: `idPost`.
  */
 const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
   if (!cliente || !cliente.storeUrl) return [];
 
-  // Validamos que el campo pedido es de la cascada
   if (!CAMPO_API.hasOwnProperty(campoFaltante)) {
     logger.warn(`[Sugerencias] Campo desconocido: '${campoFaltante}'`);
     return [];
   }
 
-  // Construimos la query con los datos ya conocidos para filtrar las sugerencias
   const partesBusqueda = [
     busquedaBD.articulo,
     busquedaBD.marca,
     busquedaBD.modelo,
     busquedaBD.ano,
-    busquedaBD.version
+    busquedaBD.version,
   ].filter(val => val && val !== "null" && val.trim() !== "");
 
-  // Si el usuario pide ayuda desde el principio (contexto vacío), damos opciones populares
-  if (partesBusqueda.length === 0) {
-    if (campoFaltante === "articulo") {
-      return ["Motor", "Alternador", "Faro", "Caja de cambios", "Paragolpes", "Aleta", "Capó", "Retrovisor"];
-    } else if (campoFaltante === "marca") {
-      return ["Audi", "BMW", "Mercedes-Benz", "Seat", "Volkswagen", "Renault", "Peugeot", "Ford"];
-    }
-    return [];
-  }
+  if (partesBusqueda.length === 0) return [];
 
   const query = partesBusqueda.join(" ");
+  const urlDelCliente = `${cliente.storeUrl}/desguacesv8/api/recambios/piezas/`;
 
   try {
-    const urlDelCliente = `${cliente.storeUrl}/desguacesv8/api/recambios/piezas/`;
+    // ════════════════════════════════════════════════════════════════════════
+    // RUTA A: Extracción por FACETAS (1 petición) — para todos los campos
+    //         menos 'ano', que la API no expone como lista.
+    // ════════════════════════════════════════════════════════════════════════
+    if (campoFaltante !== "ano") {
+      logger.info(`[Sugerencias/Facetas] campo='${campoFaltante}' query="${query}"`);
 
-    logger.info(`[Sugerencias] Campo '${campoFaltante}' | query: "${query}" | timeout: ${SUGERENCIAS_TIMEOUT_MS}ms`);
+      const respuesta = await axios.get(urlDelCliente, {
+        params: { locale: "es", q: query, pagina: 1 },
+        headers: HEADERS_NAVEGADOR,
+        timeout: DEFAULT_SUGERENCIAS_TIMEOUT,
+      });
 
-    const respuesta = await axios.get(urlDelCliente, {
-      params: { locale: "es", q: query, limit: 40 }, // Reducido a 40 para evitar timeouts
-      timeout: SUGERENCIAS_TIMEOUT_MS
+      const sugerencias = extraerDeFaceta(respuesta.data, campoFaltante, 15);
+
+      if (sugerencias.length > 0) {
+        logger.info(`[Sugerencias/Facetas] ✅ ${sugerencias.length} opciones vía faceta '${FACETA_API[campoFaltante]}'`);
+        return sugerencias;
+      }
+
+      // Fallback: si la faceta vino vacía (búsqueda muy específica), extraemos
+      // del array de piezas de la misma respuesta (ya no hay coste extra).
+      logger.warn(`[Sugerencias/Facetas] Faceta vacía para '${campoFaltante}'. Extrayendo de piezas de pág 1.`);
+      const piezas = respuesta.data.piezas || [];
+      const campoReal = CAMPO_API[campoFaltante];
+      const mapaFallback = new Map();
+      for (const pieza of piezas) {
+        const valorLimpio = limpiarTextoParaSugerencia(pieza[campoReal]);
+        if (!valorLimpio) continue;
+        const key = valorLimpio.toLowerCase();
+        if (!mapaFallback.has(key)) mapaFallback.set(key, valorLimpio);
+      }
+      return Array.from(mapaFallback.values()).slice(0, 15);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // RUTA B: Bucle de PAGINACIÓN — solo para 'ano'
+    //         La API solo devuelve anyos:{min, max} (no una lista de años).
+    //         Extraemos los años del slug de URL de cada pieza.
+    // ════════════════════════════════════════════════════════════════════════
+    logger.info(`[Sugerencias/Paginación] campo='ano' query="${query}" (la API no expone lista de años)`);
+
+    const resPag1 = await axios.get(urlDelCliente, {
+      params: { locale: "es", q: query, pagina: 1 },
+      headers: HEADERS_NAVEGADOR,
+      timeout: DEFAULT_SUGERENCIAS_TIMEOUT,
     });
 
-    const piezas = respuesta.data.piezas || [];
+    const totalPiezas = resPag1.data.total ?? 0;
+    let todasLasPiezas = resPag1.data.piezas || [];
 
-    logger.info(`[Sugerencias] API respondió con ${piezas.length} piezas para query "${query}"`);
+    if (todasLasPiezas.length === 0) return [];
 
-    if (piezas.length === 0) {
-      return [];
-    }
+    const idsVistos = new Set(todasLasPiezas.map(p => p.idPost));
 
-    let opcionesUnicas;
+    const PIEZAS_POR_PAGINA = 12;
+    const MAX_PAGINAS = 8;
+    const totalPaginas = Math.min(Math.ceil(totalPiezas / PIEZAS_POR_PAGINA), MAX_PAGINAS);
 
-    if (campoFaltante === "ano") {
-      const todosLosAnos = piezas.flatMap(extraerAnosDePieza);
-      opcionesUnicas = [...new Set(todosLosAnos)].sort().slice(0, 10);
-    } else {
-      const campoReal = CAMPO_API[campoFaltante];
-      const opciones = piezas
-        .map(p => p[campoReal])
-        .filter(val => val && String(val).trim() !== "" && val !== "SIN DEFINIR");
-      
-      // Limpieza de duplicados ignorando mayúsculas/minúsculas pero preservando formato original
-      const mapaOpciones = new Map();
-      opciones.forEach(opt => {
-        const key = String(opt).trim().toLowerCase();
-        if (!mapaOpciones.has(key)) {
-          mapaOpciones.set(key, String(opt).trim());
+    for (let p = 2; p <= totalPaginas; p++) {
+      try {
+        const resExtra = await axios.get(urlDelCliente, {
+          params: { locale: "es", q: query, pagina: p },
+          headers: HEADERS_NAVEGADOR,
+          timeout: DEFAULT_SUGERENCIAS_TIMEOUT,
+        });
+
+        const nuevasPiezas = resExtra.data.piezas || [];
+        const distintas    = nuevasPiezas.filter(p => !idsVistos.has(p.idPost));
+
+        // Guardia anti-bucle infinito: si la API deja de paginar, paramos.
+        if (distintas.length === 0 && nuevasPiezas.length > 0) {
+          logger.warn(`[Sugerencias/Paginación] Pág ${p}: 0 piezas nuevas (posible paginación rota). Parando.`);
+          break;
         }
-      });
-      
-      opcionesUnicas = Array.from(mapaOpciones.values()).slice(0, 10);
+
+        distintas.forEach(pieza => idsVistos.add(pieza.idPost));
+        todasLasPiezas = todasLasPiezas.concat(distintas);
+
+      } catch (errorPagina) {
+        logger.warn(`[Sugerencias/Paginación] Pág ${p} falló (${errorPagina.message}). Continuando...`);
+        continue;
+      }
     }
 
-    logger.info(`[Sugerencias] ✅ ${opcionesUnicas.length} opciones encontradas para '${campoFaltante}': [${opcionesUnicas.join(", ")}]`);
-    return opcionesUnicas;
+    const todosLosAnos = todasLasPiezas.flatMap(extraerAnosDePieza);
+    const anosUnicos = [...new Set(todosLosAnos)].sort().slice(0, 15);
+
+    logger.info(`[Sugerencias/Paginación] ✅ ${anosUnicos.length} años extraídos de ${todasLasPiezas.length} piezas.`);
+    return anosUnicos;
 
   } catch (error) {
-    logger.warn(`[Sugerencias] Falló silenciosamente para '${campoFaltante}': ${error.message}`);
+    logger.warn(`[Sugerencias] Error general: ${error.message}`);
     return [];
   }
 };
 
 module.exports = { consultarAPI, obtenerSugerencias };
-

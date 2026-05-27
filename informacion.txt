@@ -1,20 +1,33 @@
+Buscando alternador para audi. ¿Cuál es el modelo exacto?
 Tú
-pues la verdad esque no lo se
+pues no lo se
 Asistente IA
-No te preocupes, puedo ayudarte a encontrar la información necesaria. ¿Podrías decirme más sobre tu vehículo?
-1994
-1997
-1998
-1999
-2000
-2001
-2002
-2003
-2004
-2005
+Entendido. Parece que necesitas ayuda para continuar. ¿Podrías decirme de qué artículo estás buscando información?
+100
+8090
+A1
+A3
+A4
+A5
+A6
+A7
+A8
+ALLROAD
 Tú
-1994
+8090
 Asistente IA
-He revisado el almacén buscando "alternador" para "audi a6 1994". Pero actualmente no tenemos stock disponible.
+Entendido. Parece que has proporcionado un número, pero necesitamos más detalles para ayudarte mejor. ¿Podrías decirnos qué artículo estás buscando?
+100
+8090
+A1
+A3
+A4
+A5
+A6
+A7
+A8
+ALLROAD
 
-¿Buscas alguna otra pieza?
+MIRA LOS MENSAJES ANTES DE PROPORCIONARME LAS SUGERENCIAS, NO TIENEN MUCHO SENTIDO LA VERDAD, INTENTA A VER SI LOS PODEMOS MEJORAR.
+
+LUEGO ADEMÁS CUANDO LE DOY AL BOTON PARA SLEECCIONAR UNA SUGERENCIA LA IA NO LE DEJA PASAR PARA GUARDARLO EN EL CAMPO CORRESPONDIENTE, EN ESTE CASO FUE UN MODELO QUE ERA 8090 Y VOLVIO A DETECTAR QUE NECESITABA AYUDA EL USUARIO.

@@ -17,7 +17,7 @@ const checkHealth = async (req,res) => {
 
         await axios.get(urlBase, {
             params: { locale: "es", limit: 1 }, // Solo pedimos 1 pieza para que responda al instante
-            timeout: 5000 // Si no responde en 5 segundos, algo va mal
+            timeout: Number(process.env.HEALTH_CHECK_API_TIMEOUT_MS) || 5000 // Si no responde en 5 segundos, algo va mal
         });
 
         //La API está viva
