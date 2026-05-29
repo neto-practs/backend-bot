@@ -70,7 +70,7 @@ const generarRespuestaUsuario = (ctx) => {
       const arrNoMarca = [
         `Anotado: buscar ${pieza}${extraInfo}. Para poder afinar, ¿de qué marca es el vehículo?`,
         `¡Perfecto! Buscaremos ${pieza}${extraInfo}. ¿Me dices la marca del coche?`,
-        `Para asegurarme de encontrar stock compatible de ${pieza}${extraInfo}, ¿qué marca es?`,
+        `Para asegurarme de realizar una buena búsqueda de ${pieza}${extraInfo}, ¿qué marca es?`,
         `Ya tengo apuntado que buscas ${pieza}${extraInfo}. ¿Para qué marca lo necesitas?`
       ];
       return getFraseRandom(arrNoMarca);

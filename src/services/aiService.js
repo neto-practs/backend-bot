@@ -157,7 +157,17 @@ const seleccionRespuestaPremium = async (
   try {
     logger.info({ reqId }, `Iniciando petición a vLLM (Modelo: ${RUNPOD_IA_MODEL})...`);
 
-    const promptDelSistema   = getSystemPrompt(cliente.storeUrl, contextoAnterior);
+    let contextoAnteriorParsed = {};
+    try {
+      contextoAnteriorParsed = typeof contextoAnterior === "string"
+        ? JSON.parse(contextoAnterior)
+        : (contextoAnterior || {});
+    } catch (_) {
+      logger.warn({ reqId }, "No se pudo parsear contextoAnterior, se usará objeto vacío.");
+    }
+
+    const campoQueFalta = determinarCampoFaltante(contextoAnteriorParsed);
+    const promptDelSistema   = getSystemPrompt(cliente.storeUrl, contextoAnterior, campoQueFalta, promptUsuario);
     const textoRespuestaIA   = await llamarVLLM(promptDelSistema, promptUsuario);
 
     let intentExtraido;
@@ -168,13 +178,47 @@ const seleccionRespuestaPremium = async (
     try {
       intentExtraido = JSON.parse(textoRespuestaIA);
 
+      // Si el LLM ha logrado extraer ALGÚN dato, ignoramos requiere_sugerencias
+      // para forzar que el dato pase por la Aduana y siga el flujo de búsqueda.
+      const tieneCamposExtraidosBruto = !!(
+        intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo ||
+        intentExtraido.ano || intentExtraido.version || intentExtraido.referencia
+      );
+
       // El LLM a veces serializa booleanos como strings — normalizamos antes de usarlos.
       const requiereSugerencias =
-        intentExtraido.requiere_sugerencias === true ||
-        intentExtraido.requiere_sugerencias === "true";
+        (intentExtraido.requiere_sugerencias === true ||
+        intentExtraido.requiere_sugerencias === "true") && !tieneCamposExtraidosBruto;
+
+      // ── CASO A (PRIORIDAD MÁXIMA): El usuario está bloqueado o no sabe un dato ──
+      // Se evalúa ANTES de la aduana. Así, frases de desconocimiento como "no lo sé"
+      // o "ni idea" nunca llegan al validador léxico aunque el LLM las haya puesto
+      // en un campo técnico. Usamos contextoAnteriorParsed (el estado real confirmado),
+      // ignorando por completo el JSON del LLM para obtener los datos de búsqueda.
+      if (requiereSugerencias) {
+        logger.info({ reqId }, "requiere_sugerencias activo. Consultando BD para obtener opciones...");
+        const campoFaltante = determinarCampoFaltante(contextoAnteriorParsed);
+        const sugerencias   = campoFaltante
+          ? await apiRepository.obtenerSugerencias(contextoAnteriorParsed, campoFaltante, cliente)
+          : [];
+        logger.info({ reqId }, `Sugerencias obtenidas: ${sugerencias.length} opciones para '${campoFaltante}'.`);
+
+        return {
+          respuesta:      intentExtraido.respuesta_usuario || generarRespuestaUsuario(contextoAnteriorParsed),
+          piezas:         [],
+          sugerencias,
+          campoFaltante,
+          pedirSugerencias: false,
+          metadata:       { totalReal: 0, queryLimpia: "" },
+          // El contexto no avanza: el usuario no aportó datos técnicos válidos.
+          nuevoContexto:  typeof contextoAnterior === "string"
+            ? contextoAnterior
+            : JSON.stringify(contextoAnterior || {}),
+        };
+      }
 
       // ── Aduana: valida ortografía y existencia de marcas/artículos ──────────
-      // Solo se activa si hay campos que validar (evita coste en pura conversación).
+      // Solo se ejecuta cuando el usuario SÍ ha aportado datos técnicos.
       const tieneCamposExtraidos = !!(intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo);
       let resultadoValidacion = { error: false, contextoCorregido: intentExtraido };
 
@@ -183,14 +227,6 @@ const seleccionRespuestaPremium = async (
 
         if (resultadoValidacion.error) {
           logger.warn({ reqId }, `Aduana bloqueó la petición: ${resultadoValidacion.mensaje}`);
-
-          let contextoAnteriorParsed = {};
-          try {
-            contextoAnteriorParsed = typeof contextoAnterior === "string"
-              ? JSON.parse(contextoAnterior)
-              : (contextoAnterior || {});
-          } catch (_) {}
-
           return {
             respuesta:      resultadoValidacion.mensaje,
             piezas:         [],
@@ -210,26 +246,6 @@ const seleccionRespuestaPremium = async (
         contextoAnterior,
         resultadoValidacion.contextoCorregido
       );
-
-      // ── Caso A: El usuario pide sugerencias o está bloqueado en la cascada ──
-      if (requiereSugerencias) {
-        logger.info({ reqId }, "requiere_sugerencias activo. Consultando BD para obtener opciones...");
-        const campoFaltante = determinarCampoFaltante(contextoFusionado);
-        const sugerencias   = campoFaltante
-          ? await apiRepository.obtenerSugerencias(contextoFusionado, campoFaltante, cliente)
-          : [];
-        logger.info({ reqId }, `Sugerencias obtenidas: ${sugerencias.length} opciones para '${campoFaltante}'.`);
-
-        return {
-          respuesta:      intentExtraido.respuesta_usuario || generarRespuestaUsuario(contextoFusionado),
-          piezas:         [],
-          sugerencias,
-          campoFaltante,
-          pedirSugerencias: false,
-          metadata:       { totalReal: 0, queryLimpia: "" },
-          nuevoContexto:  JSON.stringify(contextoFusionado),
-        };
-      }
 
       // ── Caso B: Flujo normal — búsqueda en BD o respuesta conversacional ────
       busquedaBD = contextoFusionado;
