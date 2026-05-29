@@ -1,5 +1,5 @@
 const logger = require("../utils/logger");
-const { getSystemPrompt } = require("../config/prompts");
+const { getRouterPrompt, getExtractorPrompt } = require("../config/prompts");
 const apiRepository = require("../repositories/apiRepository");
 const cacheService = require("./cacheService");
 const { formatearParaReact } = require("../utils/formateadorPiezasReact");
@@ -17,14 +17,23 @@ const AI_TEMPERATURE  = parseFloat(process.env.RUNPOD_AI_TEMPERATURE) || 0.0;
 const AI_MAX_TOKENS   = parseInt(process.env.RUNPOD_IA_MAX_TOKENS) || 400;
 const AI_SERVICE_TIMEOUT_MS = Number(process.env.AI_SERVICE_TIMEOUT_MS) || 30000;
 
-// Schema de salida guiado para el vLLM: fuerza al modelo a devolver siempre este JSON.
-const GUIDED_JSON_SCHEMA = {
+// Schema para el enrutador
+const ROUTER_SCHEMA = {
   type: "object",
   properties: {
-    respuesta_usuario:   { type: "string" },
+    intent: { type: "string", enum: ["busqueda", "ayuda", "conversacion"] },
+    respuesta_conversacion: { type: ["string", "null"] }
+  },
+  required: ["intent"]
+};
+
+// Schema para el extractor
+const EXTRACTOR_SCHEMA = {
+  type: "object",
+  properties: {
     _razonamiento:       { type: "string" },
-    es_busqueda:         { type: "boolean" },
-    requiere_sugerencias:{ type: "boolean" },
+    afirmacion_simple:   { type: "boolean" },
+    negacion_simple:     { type: "boolean" },
     articulo:            { type: ["string", "null"] },
     referencia:          { type: ["string", "null"] },
     marca:               { type: ["string", "null"] },
@@ -32,7 +41,7 @@ const GUIDED_JSON_SCHEMA = {
     ano:                 { type: ["string", "null"] },
     version:             { type: ["string", "null"] },
   },
-  required: ["respuesta_usuario", "es_busqueda", "requiere_sugerencias"],
+  required: ["_razonamiento", "afirmacion_simple", "negacion_simple"]
 };
 
 /**
@@ -40,9 +49,10 @@ const GUIDED_JSON_SCHEMA = {
  * Lanza un Error si la respuesta HTTP no es 2xx.
  * @param {string} promptSistema - System prompt con instrucciones y contexto del bot
  * @param {string} promptUsuario - Mensaje del usuario a procesar
+ * @param {Object} guidedSchema - Esquema JSON para forzar el formato
  * @returns {Promise<string>} Texto JSON crudo devuelto por el modelo
  */
-const llamarVLLM = async (promptSistema, promptUsuario) => {
+const llamarVLLM = async (promptSistema, promptUsuario, guidedSchema) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), AI_SERVICE_TIMEOUT_MS);
 
@@ -62,7 +72,7 @@ const llamarVLLM = async (promptSistema, promptUsuario) => {
         temperature: AI_TEMPERATURE,
         max_tokens: AI_MAX_TOKENS,
         response_format: { type: "json_object" },
-        guided_json: GUIDED_JSON_SCHEMA,
+        guided_json: guidedSchema,
       }),
       signal: controller.signal, // Add the AbortController signal
     });
@@ -166,114 +176,101 @@ const seleccionRespuestaPremium = async (
       logger.warn({ reqId }, "No se pudo parsear contextoAnterior, se usará objeto vacío.");
     }
 
-    const campoQueFalta = determinarCampoFaltante(contextoAnteriorParsed);
-    const promptDelSistema   = getSystemPrompt(cliente.storeUrl, contextoAnterior, campoQueFalta, promptUsuario);
-    const textoRespuestaIA   = await llamarVLLM(promptDelSistema, promptUsuario);
-
-    let intentExtraido;
-    let mensajeParaUsuario = "";
-    let busquedaBD         = null;
-    let debeBuscarEnBD     = false;
-
+    const campoFaltante = determinarCampoFaltante(contextoAnteriorParsed);
+    
+    // 1. LLAMADA AL ENRUTADOR
+    const routerPrompt = getRouterPrompt(campoFaltante);
+    const textoRespuestaRouter = await llamarVLLM(routerPrompt, promptUsuario, ROUTER_SCHEMA);
+    
+    let routerResponse;
     try {
-      intentExtraido = JSON.parse(textoRespuestaIA);
-
-      // Si el LLM ha logrado extraer ALGÚN dato, ignoramos requiere_sugerencias
-      // para forzar que el dato pase por la Aduana y siga el flujo de búsqueda.
-      const tieneCamposExtraidosBruto = !!(
-        intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo ||
-        intentExtraido.ano || intentExtraido.version || intentExtraido.referencia
-      );
-
-      // El LLM a veces serializa booleanos como strings — normalizamos antes de usarlos.
-      const requiereSugerencias =
-        (intentExtraido.requiere_sugerencias === true ||
-        intentExtraido.requiere_sugerencias === "true") && !tieneCamposExtraidosBruto;
-
-      // ── CASO A (PRIORIDAD MÁXIMA): El usuario está bloqueado o no sabe un dato ──
-      // Se evalúa ANTES de la aduana. Así, frases de desconocimiento como "no lo sé"
-      // o "ni idea" nunca llegan al validador léxico aunque el LLM las haya puesto
-      // en un campo técnico. Usamos contextoAnteriorParsed (el estado real confirmado),
-      // ignorando por completo el JSON del LLM para obtener los datos de búsqueda.
-      if (requiereSugerencias) {
-        logger.info({ reqId }, "requiere_sugerencias activo. Consultando BD para obtener opciones...");
-        const campoFaltante = determinarCampoFaltante(contextoAnteriorParsed);
-        const sugerencias   = campoFaltante
-          ? await apiRepository.obtenerSugerencias(contextoAnteriorParsed, campoFaltante, cliente)
-          : [];
-        logger.info({ reqId }, `Sugerencias obtenidas: ${sugerencias.length} opciones para '${campoFaltante}'.`);
-
-        return {
-          respuesta:      intentExtraido.respuesta_usuario || generarRespuestaUsuario(contextoAnteriorParsed),
-          piezas:         [],
-          sugerencias,
-          campoFaltante,
-          pedirSugerencias: false,
-          metadata:       { totalReal: 0, queryLimpia: "" },
-          // El contexto no avanza: el usuario no aportó datos técnicos válidos.
-          nuevoContexto:  typeof contextoAnterior === "string"
-            ? contextoAnterior
-            : JSON.stringify(contextoAnterior || {}),
-        };
-      }
-
-      // ── Aduana: valida ortografía y existencia de marcas/artículos ──────────
-      // Solo se ejecuta cuando el usuario SÍ ha aportado datos técnicos.
-      const tieneCamposExtraidos = !!(intentExtraido.articulo || intentExtraido.marca || intentExtraido.modelo);
-      let resultadoValidacion = { error: false, contextoCorregido: intentExtraido };
-
-      if (intentExtraido.es_busqueda || tieneCamposExtraidos) {
-        resultadoValidacion = validarYCorregir(intentExtraido);
-
-        if (resultadoValidacion.error) {
-          logger.warn({ reqId }, `Aduana bloqueó la petición: ${resultadoValidacion.mensaje}`);
-          return {
-            respuesta:      resultadoValidacion.mensaje,
-            piezas:         [],
-            sugerencias:    [],
-            campoFaltante:  determinarCampoFaltante(contextoAnteriorParsed),
-            pedirSugerencias: false,
-            metadata:       { totalReal: 0, queryLimpia: "" },
-            nuevoContexto:  typeof contextoAnterior === "string"
-              ? contextoAnterior
-              : JSON.stringify(contextoAnterior || {}),
-          };
-        }
-      }
-
-      // ── Fusión de memoria: combina el contexto previo con los datos nuevos ──
-      const { contexto: contextoFusionado, realizarBusqueda } = fusionarContexto(
-        contextoAnterior,
-        resultadoValidacion.contextoCorregido
-      );
-
-      // ── Caso B: Flujo normal — búsqueda en BD o respuesta conversacional ────
-      busquedaBD = contextoFusionado;
-      const tieneDatosEnMemoria = !!(
-        busquedaBD.articulo || busquedaBD.marca || busquedaBD.modelo || busquedaBD.referencia
-      );
-      debeBuscarEnBD = (intentExtraido.es_busqueda || tieneDatosEnMemoria) && realizarBusqueda;
-
-      if (!debeBuscarEnBD) {
-        const frasesConversacion = [
-          intentExtraido.respuesta_usuario || "¿En qué te puedo ayudar hoy?",
-          "Dime, ¿qué necesitas para tu coche?",
-          "¡Hola! Cuéntame, ¿qué pieza estás buscando?",
-          "Estoy aquí para ayudarte, ¿buscamos alguna pieza?",
-        ];
-        mensajeParaUsuario = frasesConversacion[Math.floor(Math.random() * frasesConversacion.length)];
-        logger.info({ reqId }, "Modo Conversación / Datos insuficientes.");
-      } else {
-        mensajeParaUsuario = generarRespuestaUsuario(busquedaBD);
-      }
-
-    } catch (errorParseIA) {
-      logger.error({ reqId, err: errorParseIA }, "Error procesando JSON de la IA.");
-      mensajeParaUsuario = textoRespuestaIA;
+      routerResponse = JSON.parse(textoRespuestaRouter);
+    } catch (e) {
+      logger.error({ reqId, err: e }, "Error procesando JSON del enrutador.");
+      routerResponse = { intent: "busqueda" };
     }
 
-    // ── Seguro de cascada: bloquea la búsqueda si faltan datos mínimos ────────
-    // Una búsqueda sin artículo+marca+modelo+año devolvería miles de resultados irrelevantes.
+    // Caso 1: Conversación
+    if (routerResponse.intent === "conversacion") {
+      logger.info({ reqId }, "Enrutador detectó conversación.");
+      return {
+        respuesta: routerResponse.respuesta_conversacion || "¿En qué te puedo ayudar hoy?",
+        piezas: [],
+        sugerencias: [],
+        campoFaltante,
+        pedirSugerencias: false,
+        metadata: { totalReal: 0, queryLimpia: "" },
+        nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnteriorParsed),
+      };
+    }
+
+    // Caso 2: Ayuda / Bloqueo
+    if (routerResponse.intent === "ayuda") {
+      logger.info({ reqId }, "Enrutador detectó ayuda/bloqueo. Consultando BD para obtener opciones...");
+      const sugerencias = campoFaltante
+        ? await apiRepository.obtenerSugerencias(contextoAnteriorParsed, campoFaltante, cliente)
+        : [];
+      logger.info({ reqId }, `Sugerencias obtenidas: ${sugerencias.length} opciones para '${campoFaltante}'.`);
+
+      return {
+        respuesta: "¡No te preocupes! Aquí tienes unas opciones:",
+        piezas: [],
+        sugerencias,
+        campoFaltante,
+        pedirSugerencias: false,
+        metadata: { totalReal: 0, queryLimpia: "" },
+        nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnteriorParsed),
+      };
+    }
+
+    // Caso 3: Búsqueda / Extracción de Datos
+    logger.info({ reqId }, "Enrutador detectó búsqueda. Llamando al Extractor...");
+    const extractorPrompt = getExtractorPrompt(cliente.storeUrl);
+    const textoRespuestaExtractor = await llamarVLLM(extractorPrompt, promptUsuario, EXTRACTOR_SCHEMA);
+    
+    let datosExtraidos;
+    try {
+      datosExtraidos = JSON.parse(textoRespuestaExtractor);
+    } catch (e) {
+      logger.error({ reqId, err: e }, "Error procesando JSON del extractor.");
+      datosExtraidos = {};
+    }
+
+    // Aduana: valida ortografía y existencia de marcas/artículos
+    let resultadoValidacion = validarYCorregir(datosExtraidos);
+
+    if (resultadoValidacion.error) {
+      logger.warn({ reqId }, `Aduana bloqueó la petición: ${resultadoValidacion.mensaje}`);
+      
+      // SOLUCIÓN AMNESIA: Fusionar lo que sí era válido (ej: marca/modelo) con el contexto anterior,
+      // para no olvidar el coche si el usuario falla en el nombre de la pieza.
+      const { contexto: contextoParcial } = fusionarContexto(contextoAnterior, resultadoValidacion.contextoCorregido);
+
+      return {
+        respuesta: resultadoValidacion.mensaje,
+        piezas: [],
+        sugerencias: [],
+        campoFaltante,
+        pedirSugerencias: false,
+        metadata: { totalReal: 0, queryLimpia: "" },
+        nuevoContexto: JSON.stringify(contextoParcial),
+      };
+    }
+
+    // Fusión de memoria: combina el contexto previo con los datos nuevos
+    const { contexto: contextoFusionado, realizarBusqueda } = fusionarContexto(
+      contextoAnterior,
+      resultadoValidacion.contextoCorregido
+    );
+
+    let busquedaBD = contextoFusionado;
+    const tieneDatosEnMemoria = !!(
+      busquedaBD.articulo || busquedaBD.marca || busquedaBD.modelo || busquedaBD.referencia
+    );
+    let debeBuscarEnBD = tieneDatosEnMemoria && realizarBusqueda;
+    let mensajeParaUsuario = "";
+
+    // Seguro de cascada: bloquea la búsqueda si faltan datos mínimos
     if (debeBuscarEnBD && busquedaBD) {
       const cascadaCompleta =
         busquedaBD.articulo && busquedaBD.marca && busquedaBD.modelo && busquedaBD.ano;
@@ -281,22 +278,23 @@ const seleccionRespuestaPremium = async (
 
       if (!cascadaCompleta && !tieneReferencia) {
         logger.warn({ reqId }, "Búsqueda bloqueada: faltan datos para la cascada completa.");
-        debeBuscarEnBD     = false;
-        mensajeParaUsuario = generarRespuestaUsuario(busquedaBD);
+        debeBuscarEnBD = false;
       }
     }
+    
+    mensajeParaUsuario = generarRespuestaUsuario(busquedaBD);
 
     if (!debeBuscarEnBD) {
-      const campoFaltante = determinarCampoFaltante(busquedaBD || {});
-      logger.info({ reqId }, `Flujo normal — siguiente campo: '${campoFaltante}'.`);
+      const nuevoCampoFaltante = determinarCampoFaltante(busquedaBD || {});
+      logger.info({ reqId }, `Flujo normal — siguiente campo: '${nuevoCampoFaltante}'.`);
       return {
-        respuesta:      mensajeParaUsuario,
-        piezas:         [],
-        sugerencias:    [],
-        campoFaltante,
+        respuesta: mensajeParaUsuario,
+        piezas: [],
+        sugerencias: [],
+        campoFaltante: nuevoCampoFaltante,
         pedirSugerencias: false,
-        metadata:       { totalReal: 0, queryLimpia: "" },
-        nuevoContexto:  JSON.stringify(busquedaBD || {}),
+        metadata: { totalReal: 0, queryLimpia: "" },
+        nuevoContexto: JSON.stringify(busquedaBD || {}),
       };
     }
 
@@ -308,9 +306,9 @@ const seleccionRespuestaPremium = async (
       return await seleccionRespuesta(promptUsuario, contextoAnterior, reqId, cliente);
     } catch (fallbackError) {
       return {
-        respuesta:     "Servicio temporalmente no disponible.",
-        piezas:        [],
-        sugerencias:   [],
+        respuesta: "Servicio temporalmente no disponible.",
+        piezas: [],
+        sugerencias: [],
         nuevoContexto: contextoAnterior,
       };
     }

@@ -156,13 +156,28 @@ const validarYCorregir = (ctx) => {
       .filter(token => !CONECTORES_IGNORADOS.has(textNormalize(token)));
       
     const palabrasCorregidas = [];
+    const tokensParaUnir = [];
 
-    for (const token of tokens) {
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
       const palabraNorm = textNormalize(token);
       if (!palabraNorm) continue;
 
       const umbral = obtenerUmbralDinamico(palabraNorm);
-      const clasificacion = clasificarPalabra(palabraNorm, umbral);
+      let clasificacion = clasificarPalabra(palabraNorm, umbral);
+
+      // Si no la reconoce, intentamos unirla con la siguiente palabra (ej: "oara" + "golpes")
+      if (!clasificacion.reconocida && i < tokens.length - 1) {
+        const siguienteToken = tokens[i + 1];
+        const tokenUnido = palabraNorm + textNormalize(siguienteToken);
+        const clasificacionUnida = clasificarPalabra(tokenUnido, obtenerUmbralDinamico(tokenUnido));
+        
+        if (clasificacionUnida.reconocida) {
+          clasificacion = clasificacionUnida;
+          logger.info(`Aduana: Uniendo palabras partidas "${token} ${siguienteToken}" → "${clasificacion.target}"`);
+          i++; // Saltamos el siguiente token porque ya lo hemos unido
+        }
+      }
 
       if (!clasificacion.reconocida) {
         if (campo === "modelo") {
@@ -184,6 +199,7 @@ const validarYCorregir = (ctx) => {
         modelosTemp.push(token);
       }
 
+      // Si era una palabra única y ha sido corregida (no unida)
       if (palabraNorm !== textNormalize(clasificacion.target) && clasificacion.tipo !== "modelo") {
         logger.info(`Aduana: Corregido "${token}" → "${clasificacion.target}" (${clasificacion.tipo})`);
       }
@@ -198,8 +214,26 @@ const validarYCorregir = (ctx) => {
         if (campo === "articulo") articulosTemp.push(conceptoUnico);
         else marcasTemp.push(conceptoUnico);
       } else {
-        if (campo === "articulo") articulosTemp.push(...palabrasCorregidas);
-        else if (campo === "marca") marcasTemp.push(...palabrasCorregidas);
+        // FALLBACK: Si las palabras no forman una frase exacta, buscamos el mejor matching global
+        const listaFrases = campo === "articulo" ? FRASES_ARTICULOS : (campo === "marca" ? FRASES_MARCAS : []);
+        const textoLimpio = palabrasCorregidas.join(" "); // ej: "espejo retrovisor izquierdo"
+        
+        if (listaFrases.length > 0) {
+          const mejorMatchGlobal = obtenerMejorMatch(textoLimpio, listaFrases);
+          
+          if (mejorMatchGlobal && mejorMatchGlobal.rating > 0.65) {
+            logger.info(`Aduana: Fallback global para "${textoLimpio}" → "${mejorMatchGlobal.target}" (${campo})`);
+            if (campo === "articulo") articulosTemp.push(mejorMatchGlobal.target);
+            else marcasTemp.push(mejorMatchGlobal.target);
+          } else {
+            // Si el matching global es pobre, guardamos separadas (probablemente lanzará error de múltiples)
+            if (campo === "articulo") articulosTemp.push(...palabrasCorregidas);
+            else if (campo === "marca") marcasTemp.push(...palabrasCorregidas);
+          }
+        } else {
+          if (campo === "articulo") articulosTemp.push(...palabrasCorregidas);
+          else if (campo === "marca") marcasTemp.push(...palabrasCorregidas);
+        }
       }
     }
   }
@@ -212,9 +246,13 @@ const validarYCorregir = (ctx) => {
   contextoNuevo.marca = marcasUnicas.length > 0 ? marcasUnicas[0] : null;
 
   if (erroresFatales.length > 0) {
-    const partesError = erroresFatales.map(e => {
-      const nombreHumano = e.campoOriginal === "articulo" ? "el artículo" : "la marca";
-      return `la palabra "${e.texto}" en ${nombreHumano}`;
+    // Agrupamos errores por campo para mostrar el valor original completo
+    const camposConError = [...new Set(erroresFatales.map(e => e.campoOriginal))];
+
+    const partesError = camposConError.map(campo => {
+      const nombreHumano = campo === "articulo" ? "el artículo" : "la marca";
+      const valorOriginal = originales[campo];
+      return `"${valorOriginal}" en ${nombreHumano}`;
     });
 
     const mensaje = partesError.length === 1 

@@ -139,7 +139,7 @@ const FACETA_API = {
  * @param {number} maxSugerencias - Límite de sugerencias
  * @returns {string[]}
  */
-const extraerDeFaceta = (dataAPI, campoFaltante, maxSugerencias = 15) => {
+const extraerDeFaceta = (dataAPI, campoFaltante, maxSugerencias = 6) => {
   const claveAPI = FACETA_API[campoFaltante];
   if (!claveAPI) return [];
 
@@ -208,7 +208,7 @@ const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
       if (Array.isArray(anyosList) && anyosList.length > 0) {
         const procesados = [...new Set(anyosList.map(String))]
           .sort((a, b) => b - a)
-          .slice(0, 15);
+          .slice(0, 6);
 
         logger.info(`[Sugerencias] ✅ ${procesados.length} años extraídos de anyosList.`);
         return procesados;
@@ -217,7 +217,7 @@ const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
       // Fallback: extraer años de las piezas de la primera página.
       const piezas = dataAPI.piezas || [];
       const todosLosAnos = piezas.flatMap(extraerAnosDePieza);
-      const anosFallback = [...new Set(todosLosAnos)].sort((a, b) => b - a).slice(0, 15);
+      const anosFallback = [...new Set(todosLosAnos)].sort((a, b) => b - a).slice(0, 6);
 
       if (anosFallback.length > 0) {
         logger.info(`[Sugerencias] ✅ ${anosFallback.length} años extraídos vía fallback.`);
@@ -226,7 +226,7 @@ const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
     }
 
     // Resto de campos usando facetas (marca, modelo, versión, artículo).
-    const sugerencias = extraerDeFaceta(dataAPI, campoFaltante, 15);
+    const sugerencias = extraerDeFaceta(dataAPI, campoFaltante, 6);
 
     if (sugerencias.length > 0) {
       logger.info(`[Sugerencias] ✅ ${sugerencias.length} opciones vía faceta '${FACETA_API[campoFaltante]}'`);
@@ -245,7 +245,7 @@ const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
       if (!mapaFallback.has(key)) mapaFallback.set(key, valorLimpio);
     }
 
-    const resFallback = Array.from(mapaFallback.values()).slice(0, 15);
+    const resFallback = Array.from(mapaFallback.values()).slice(0, 6);
     if (resFallback.length > 0) {
       logger.info(`[Sugerencias] ✅ ${resFallback.length} opciones vía fallback.`);
     }

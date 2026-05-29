@@ -1,1 +1,18 @@
- 1
+Tú
+salpicaderooo
+Asistente IA
+¡Perfecto! Buscaremos salpicadero. ¿Me dices la marca del coche?
+Tú
+retrovissor
+Asistente IA
+¡No te preocupes! Aquí tienes unas opciones:
+ALFA ROMEO
+AUDI
+BMW
+CHEVROLET
+CHRYSLER
+CITROEN
+CUPRA
+DACIA
+DAEWOO
+DODGE
