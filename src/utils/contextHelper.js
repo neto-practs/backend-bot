@@ -40,11 +40,13 @@ const fusionarContexto = (contextoAnterior, nuevoIntent) => {
     };
   }
 
-  // CASO B: Cambio de Marca -> Resetea todo lo que va por debajo
+  // CASO B: Cambio de Marca -> Resetea todo lo que va por debajo.
+  // Excepción: si ya teníamos modelo pero no marca (extracción parcial anterior),
+  // conservamos el modelo al recibir la marca que le corresponde.
   if (current.marca && current.marca !== old.marca) {
     final.marca = current.marca;
-    final.modelo = current.modelo || null; // Por si dice "BMW Serie 3" de golpe
-    final.ano = null;
+    final.modelo = current.modelo || (old.marca ? null : old.modelo);
+    final.ano = old.marca ? null : old.ano;
     final.version = null;
     final.referencia = null;
   } 
