@@ -57,7 +57,7 @@ function transformarTxtADiccionario(fileName, varName, outputFileName) {
 }
 
 // ==========================================
-// 🚀 EJECUCIÓN DEL GENERADOR
+// Ejecución del generador
 // ==========================================
 
 // Procesa las Marcas

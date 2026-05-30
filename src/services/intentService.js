@@ -10,12 +10,12 @@ const manager = new NlpManager({ languages: ["es"], forceNER: false });
 
 const loadCorpus = (corpus) => {
   corpus.data.forEach((item) => {
-    //Leemos las frases para enntrenarla
+    // Leemos las frases para entrenarla
     item.utterances.forEach((frase) => {
       manager.addDocument("es", frase, item.intent);
     });
     if (item.answers) {
-      //Le enseñamos la respuestas tambieen
+      // Le enseñamos las respuestas también
       item.answers.forEach((respuesta) => {
         manager.addAnswer("es", item.intent, respuesta);
       });
@@ -34,8 +34,7 @@ const trainNLP = async () => {
     await manager.train();
     await manager.save(); //guardamos el entrenamiento
 
-    logger.info("Motor NPL entrenado con exito");
-    logger.info(" Motor NLP entrenado y guardado con exito");
+    logger.info("Motor NLP entrenado y guardado con éxito");
   } catch (error) {
     logger.error(" Error entrenando el NLP:", error);
   }

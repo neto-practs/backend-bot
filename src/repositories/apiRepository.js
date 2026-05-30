@@ -210,7 +210,7 @@ const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
           .sort((a, b) => b - a)
           .slice(0, 6);
 
-        logger.info(`[Sugerencias] ✅ ${procesados.length} años extraídos de anyosList.`);
+        logger.info(`[Sugerencias] ${procesados.length} años extraídos de anyosList.`);
         return procesados;
       }
 
@@ -220,7 +220,7 @@ const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
       const anosFallback = [...new Set(todosLosAnos)].sort((a, b) => b - a).slice(0, 6);
 
       if (anosFallback.length > 0) {
-        logger.info(`[Sugerencias] ✅ ${anosFallback.length} años extraídos vía fallback.`);
+        logger.info(`[Sugerencias] ${anosFallback.length} años extraídos vía fallback.`);
       }
       return anosFallback;
     }
@@ -229,7 +229,7 @@ const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
     const sugerencias = extraerDeFaceta(dataAPI, campoFaltante, 6);
 
     if (sugerencias.length > 0) {
-      logger.info(`[Sugerencias] ✅ ${sugerencias.length} opciones vía faceta '${FACETA_API[campoFaltante]}'`);
+      logger.info(`[Sugerencias] ${sugerencias.length} opciones vía faceta '${FACETA_API[campoFaltante]}'`);
       return sugerencias;
     }
 
@@ -247,7 +247,7 @@ const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
 
     const resFallback = Array.from(mapaFallback.values()).slice(0, 6);
     if (resFallback.length > 0) {
-      logger.info(`[Sugerencias] ✅ ${resFallback.length} opciones vía fallback.`);
+      logger.info(`[Sugerencias] ${resFallback.length} opciones vía fallback.`);
     }
     return resFallback;
 

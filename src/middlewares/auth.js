@@ -21,7 +21,6 @@ const authMiddleware = (req, res, next) => {
       .json({ error: "Dominio no autorizado para usar este servicio." });
   }
 
-  // Añadido el return para parar la ejecución
   if (apiKey !== cliente.backendApiKey) {
     logger.warn({ ip: req.ip, origin }, "API key invalida para este cliente");
     return res.status(403).json({ error: "Prohibido. API key incorrecta." });

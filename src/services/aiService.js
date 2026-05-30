@@ -217,7 +217,7 @@ const seleccionRespuestaPremium = async (
         piezas: [],
         sugerencias,
         campoFaltante,
-        pedirSugerencias: false,
+        pedirSugerencias: true,
         metadata: { totalReal: 0, queryLimpia: "" },
         nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnteriorParsed),
       };

@@ -41,9 +41,9 @@ fs.createReadStream("desguaces_parts.csv")
     fs.writeFileSync("./src/data/diccionarioVersiones.js", contenido);
 
     console.log(
-      `✅ ¡Hecho! Extraídas ${resultado.length} frases de versiones.`,
+      `¡Hecho! Extraídas ${resultado.length} frases de versiones.`,
     );
     console.log(
-      `📊 Líneas totales: ${totalLineas} | Bloqueados por marca/modelo: ${bloqueados}`,
+      `Estadísticas: Líneas totales: ${totalLineas} | Bloqueados por marca/modelo: ${bloqueados}`,
     );
   });
