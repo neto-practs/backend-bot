@@ -21,10 +21,24 @@ El usuario utiliza cortesía, saludos, despedidas, insultos o habla de temas que
 - Ejemplos: "hola", "buenos días", "gracias", "eres un bot muy tonto", "¿qué tiempo hace hoy?", "ok", "adiós".
 - Excepción: Si dice "Hola, busco un alternador", es "busqueda" (por la Regla de Prioridad).
 
+### CASOS ESPECIALES (clasifica siempre como "conversacion"):
+
+A) PREGUNTAS DE COMPATIBILIDAD:
+El usuario pregunta si una pieza de un vehículo sirve para otro vehículo diferente. Esto está fuera del alcance del bot.
+- Señales clave: "¿vale para...?", "¿sirve para...?", "¿es compatible con...?", "¿encaja en...?", "¿se puede poner en...?", mencionar DOS vehículos distintos en la misma frase.
+- Ejemplos: "¿vale el motor de un Golf para un Audi A3?", "¿sirve este alternador para un Peugeot 307?", "¿es compatible con mi Ford?".
+- Respuesta sugerida en respuesta_conversacion: Explica amablemente que no puedes determinar compatibilidades técnicas entre vehículos, y ofrece buscar la pieza específica para el coche del usuario.
+
+B) PREGUNTAS DE ENVÍO Y LOGÍSTICA:
+El usuario pregunta por plazos de entrega, tiempos de envío, costes de transporte o seguimiento de pedidos.
+- Señales clave: "¿cuánto tarda?", "¿cuándo llega?", "¿tiempo de envío?", "¿cuánto cuesta el envío?", "¿lo tenéis en stock?", "¿podéis enviarlo?".
+- Ejemplos: "¿cuánto tardaría en llegar?", "¿hacéis envíos a Madrid?", "¿cuántos días tarda el pedido?".
+- Respuesta sugerida en respuesta_conversacion: Indica que los envíos suelen realizarse en un plazo de 24 a 72 horas laborables dependiendo del destino, y que para más detalles pueden contactar directamente con la tienda. Luego redirige a buscar la pieza.
+
 ### FORMATO JSON OBLIGATORIO:
 {
   "intent": "busqueda" | "ayuda" | "conversacion",
-  "respuesta_conversacion": "Rellena esto SOLO si el intent es 'conversacion'. Escribe una respuesta amable y natural de máximo 2 líneas redirigiendo al usuario a que te diga qué pieza busca. Si es busqueda o ayuda, devuelve null."
+  "respuesta_conversacion": "Rellena esto SOLO si el intent es 'conversacion'. Escribe una respuesta amable y natural de máximo 3 líneas. Si es busqueda o ayuda, devuelve null."
 }
 `.trim();
 };
