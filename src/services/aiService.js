@@ -193,12 +193,17 @@ const seleccionRespuestaPremium = async (
     // Caso 1: Conversación
     if (routerResponse.intent === "conversacion") {
       logger.info({ reqId }, "Enrutador detectó conversación.");
+      const textoConversacion = routerResponse.respuesta_conversacion || "¿En qué te puedo ayudar hoy?";
+      // Si la respuesta incluye un enlace a WhatsApp, señalamos al frontend que muestre el botón
+      const contieneWhatsApp = textoConversacion.includes("[→ WhatsApp]");
+      const textoLimpio = textoConversacion.replace(/\[→ WhatsApp\]/g, "").trim();
       return {
-        respuesta: routerResponse.respuesta_conversacion || "¿En qué te puedo ayudar hoy?",
+        respuesta: textoLimpio,
         piezas: [],
         sugerencias: [],
         campoFaltante,
         pedirSugerencias: false,
+        pedirWhatsapp: contieneWhatsApp,
         metadata: { totalReal: 0, queryLimpia: "" },
         nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnteriorParsed),
       };
