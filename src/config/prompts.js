@@ -21,6 +21,10 @@ El usuario utiliza cortesía, saludos, despedidas, insultos o habla de temas que
 - Ejemplos: "hola", "buenos días", "gracias", "eres un bot muy tonto", "¿qué tiempo hace hoy?", "ok", "adiós".
 - Excepción: Si dice "Hola, busco un alternador", es "busqueda" (por la Regla de Prioridad).
 
+4. "agente"
+El usuario expresa explícitamente que quiere hablar con un humano, agente, persona, o pide contacto directo como WhatsApp o teléfono.
+- Ejemplos: "quiero hablar con un humano", "pásame con un agente", "necesito una persona", "dame vuestro whatsapp", "número de teléfono", "quiero llamar".
+
 ### CASOS ESPECIALES (clasifica siempre como "conversacion"):
 
 A) PREGUNTAS DE COMPATIBILIDAD:
@@ -37,7 +41,7 @@ El usuario pregunta por plazos de entrega, tiempos de envío, costes de transpor
 
 ### FORMATO JSON OBLIGATORIO:
 {
-  "intent": "busqueda" | "ayuda" | "conversacion",
+  "intent": "busqueda" | "ayuda" | "conversacion" | "agente",
   "respuesta_conversacion": "Rellena esto SOLO si el intent es 'conversacion'. Escribe una respuesta amable y natural de máximo 3 líneas. Si es busqueda o ayuda, devuelve null."
 }
 `.trim();

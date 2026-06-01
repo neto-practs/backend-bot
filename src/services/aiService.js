@@ -204,6 +204,20 @@ const seleccionRespuestaPremium = async (
       };
     }
 
+    // Caso Agente: Derivación a Humano / WhatsApp
+    if (routerResponse.intent === "agente") {
+      logger.info({ reqId }, "Enrutador detectó derivación a agente humano.");
+      return {
+        respuesta: "TRIGGER_WHATSAPP",
+        piezas: [],
+        sugerencias: [],
+        campoFaltante,
+        pedirSugerencias: false,
+        metadata: { totalReal: 0, queryLimpia: "" },
+        nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnteriorParsed),
+      };
+    }
+
     // Caso 2: Ayuda / Bloqueo
     if (routerResponse.intent === "ayuda") {
       logger.info({ reqId }, "Enrutador detectó ayuda/bloqueo. Consultando BD para obtener opciones...");
