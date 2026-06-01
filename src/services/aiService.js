@@ -21,8 +21,9 @@ const AI_SERVICE_TIMEOUT_MS = Number(process.env.AI_SERVICE_TIMEOUT_MS) || 30000
 const ROUTER_SCHEMA = {
   type: "object",
   properties: {
-    intent: { type: "string", enum: ["busqueda", "ayuda", "conversacion"] },
-    respuesta_conversacion: { type: ["string", "null"] }
+    intent: { type: "string", enum: ["busqueda", "ayuda", "conversacion", "agente"] },
+    respuesta_conversacion: { type: ["string", "null"] },
+    reset: { type: ["boolean", "null"] }
   },
   required: ["intent"]
 };
@@ -190,9 +191,12 @@ const seleccionRespuestaPremium = async (
       routerResponse = { intent: "busqueda" };
     }
 
-    // Caso 1: Conversación
+    // Caso 1: Conversación (incluye posible reset de contexto)
     if (routerResponse.intent === "conversacion") {
       logger.info({ reqId }, "Enrutador detectó conversación.");
+      const esReset = routerResponse.reset === true;
+      if (esReset) logger.info({ reqId }, "Reset de conversación solicitado por el usuario.");
+
       const textoConversacion = routerResponse.respuesta_conversacion || "¿En qué te puedo ayudar hoy?";
       // Si la respuesta incluye un enlace a WhatsApp, señalamos al frontend que muestre el botón
       const contieneWhatsApp = textoConversacion.includes("[→ WhatsApp]");
@@ -201,11 +205,12 @@ const seleccionRespuestaPremium = async (
         respuesta: textoLimpio,
         piezas: [],
         sugerencias: [],
-        campoFaltante,
+        campoFaltante: esReset ? null : campoFaltante,
         pedirSugerencias: false,
         pedirWhatsapp: contieneWhatsApp,
+        reset: esReset,
         metadata: { totalReal: 0, queryLimpia: "" },
-        nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnteriorParsed),
+        nuevoContexto: esReset ? "" : (typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnteriorParsed)),
       };
     }
 
