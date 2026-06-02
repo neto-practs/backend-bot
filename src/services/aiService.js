@@ -127,7 +127,7 @@ const ejecutarBusquedaAPI = async (busquedaBD, mensajeParaUsuario, reqId, client
     const cocheDesc = [busquedaBD.marca, busquedaBD.modelo, busquedaBD.ano]
       .filter(Boolean).join(" ");
     return {
-      respuesta: `Lo sentimos, ahora mismo no tenemos "${busquedaBD.articulo || "esa pieza"}" para "${cocheDesc || "ese vehículo"}" en stock.\nSi quieres, un agente puede buscarte alternativas o avisarte cuando entre.`,
+      respuesta: `Lo sentimos, ahora mismo no tenemos "${busquedaBD.articulo || "esa pieza"}" para "${cocheDesc || "ese vehículo"}" en stock.\nTe proporciono el contacto de un agente que pueda ayudarte.`,
       piezas: [],
       sugerencias: [],
       pedirSugerencias: false,
