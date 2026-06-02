@@ -237,6 +237,18 @@ const seleccionRespuestaPremium = async (
         : [];
       logger.info({ reqId }, `Sugerencias obtenidas: ${sugerencias.length} opciones para '${campoFaltante}'.`);
 
+      if (sugerencias.length === 0) {
+        return {
+          respuesta: "Lo siento, no he encontrado opciones disponibles para lo que buscas actualmente. ¿Podrías revisar el vehículo proporcionado?",
+          piezas: [],
+          sugerencias: [],
+          campoFaltante,
+          pedirSugerencias: false,
+          metadata: { totalReal: 0, queryLimpia: "" },
+          nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnteriorParsed),
+        };
+      }
+
       return {
         respuesta: "¡No te preocupes! Aquí tienes unas opciones:",
         piezas: [],
