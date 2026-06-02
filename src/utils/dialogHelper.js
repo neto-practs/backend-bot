@@ -96,10 +96,10 @@ const generarRespuestaUsuario = (ctx) => {
 
     case "version":
       const arrNoVersion = [
-        `Ya casi lo tenemos: ${pieza} para tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}. ¿Qué versión o motor tiene?`,
-        `Perfecto, ${ctx.marca} ${ctx.modelo} del ${ctx.ano}. Para afinar al 100%, ¿me dices la cilindrada o versión del motor?`,
-        `Solo un dato más: ¿Qué motor o versión es tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}?`,
-        `Último paso para encontrar ${pieza}: ¿Qué motor lleva tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}?`
+        `Ya casi lo tenemos: ${pieza} para tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}. ¿Qué versión tiene?`,
+        `Perfecto, ${ctx.marca} ${ctx.modelo} del ${ctx.ano}. Para afinar al 100%, ¿me dices la versión del vehiculo?`,
+        `Solo un dato más: ¿De que versión es tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}?`,
+        `Último paso para encontrar tu ${pieza}: ¿Cual es la versión de tu ${ctx.marca} ${ctx.modelo} del ${ctx.ano}?`
       ];
       return getFraseRandom(arrNoVersion);
 

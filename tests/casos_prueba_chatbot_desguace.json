@@ -1,0 +1,1615 @@
+{
+  "descripcion": "Bateria de casos de prueba QA - Chatbot de Recambios de Desguace",
+  "total_casos": 200,
+  "distribucion": {
+    "Flujo Ideal (Happy Path)": 40,
+    "Ortografía y Aduana": 40,
+    "Memoria y Contexto (Multi-turno)": 40,
+    "Bloqueos y Sugerencias (Ayuda)": 20,
+    "Derivación a Humano (Agente)": 20,
+    "Fuera de Alcance y Logística": 20,
+    "Búsquedas por Referencia": 20
+  },
+  "casos": [
+    {
+      "id": "TC-001",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "motor ford focus 2005",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=motor, marca=Ford, modelo=Focus, ano=2005 -> pedir version"
+    },
+    {
+      "id": "TC-002",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "alternador",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=alternador -> pedir marca/coche"
+    },
+    {
+      "id": "TC-003",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "necesito un faro delantero para un Seat Ibiza 2010",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=faro delantero, marca=Seat, modelo=Ibiza, ano=2010 -> pedir version"
+    },
+    {
+      "id": "TC-004",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "caja de cambios audi a3 2008 1.9 tdi",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=caja de cambios, marca=Audi, modelo=A3, ano=2008, version=1.9 TDI -> buscar"
+    },
+    {
+      "id": "TC-005",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "paragolpes delantero",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=paragolpes delantero -> pedir coche"
+    },
+    {
+      "id": "TC-006",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "busco un retrovisor izquierdo de un Renault Megane",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=retrovisor izquierdo, marca=Renault, modelo=Megane -> pedir año"
+    },
+    {
+      "id": "TC-007",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "turbo para Volkswagen Golf 2012",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=turbo, marca=Volkswagen, modelo=Golf, ano=2012 -> pedir version"
+    },
+    {
+      "id": "TC-008",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "un piloto trasero derecho",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=piloto trasero derecho -> pedir coche"
+    },
+    {
+      "id": "TC-009",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "compresor del aire acondicionado de un BMW Serie 3 del 2015",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=compresor A/A, marca=BMW, modelo=Serie 3, ano=2015 -> pedir version"
+    },
+    {
+      "id": "TC-010",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "amortiguador trasero",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=amortiguador trasero -> pedir coche"
+    },
+    {
+      "id": "TC-011",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "puerta delantera izquierda peugeot 308 2011",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=puerta delantera izquierda, marca=Peugeot, modelo=308, ano=2011 -> pedir version"
+    },
+    {
+      "id": "TC-012",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "bomba de agua",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=bomba de agua -> pedir coche"
+    },
+    {
+      "id": "TC-013",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "radiador citroen c4 2009 1.6 hdi",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=radiador, marca=Citroen, modelo=C4, ano=2009, version=1.6 HDI -> buscar"
+    },
+    {
+      "id": "TC-014",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "un capó",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=capo -> pedir coche"
+    },
+    {
+      "id": "TC-015",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "colector de escape opel astra 2007",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=colector de escape, marca=Opel, modelo=Astra, ano=2007 -> pedir version"
+    },
+    {
+      "id": "TC-016",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "luna trasera",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=luna trasera -> pedir coche"
+    },
+    {
+      "id": "TC-017",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "centralita motor mercedes clase a 2013",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=centralita motor, marca=Mercedes, modelo=Clase A, ano=2013 -> pedir version"
+    },
+    {
+      "id": "TC-018",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "un intercooler",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=intercooler -> pedir coche"
+    },
+    {
+      "id": "TC-019",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "cremallera de direccion toyota yaris 2010",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=cremallera de direccion, marca=Toyota, modelo=Yaris, ano=2010 -> pedir version"
+    },
+    {
+      "id": "TC-020",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "manguito de turbo",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=manguito de turbo -> pedir coche"
+    },
+    {
+      "id": "TC-021",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "kit de embrague nissan qashqai 2014 1.5 dci",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=kit de embrague, marca=Nissan, modelo=Qashqai, ano=2014, version=1.5 dCi -> buscar"
+    },
+    {
+      "id": "TC-022",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "un colector de admision",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=colector de admision -> pedir coche"
+    },
+    {
+      "id": "TC-023",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "aleta delantera derecha fiat punto 2006",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=aleta delantera derecha, marca=Fiat, modelo=Punto, ano=2006 -> pedir version"
+    },
+    {
+      "id": "TC-024",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "bobina de encendido",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=bobina de encendido -> pedir coche"
+    },
+    {
+      "id": "TC-025",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "deposito de combustible kia ceed 2012",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=deposito de combustible, marca=Kia, modelo=Ceed, ano=2012 -> pedir version"
+    },
+    {
+      "id": "TC-026",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "un cardan",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=cardan -> pedir coche"
+    },
+    {
+      "id": "TC-027",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "caudalimetro hyundai i30 2011 1.6 crdi",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=caudalimetro, marca=Hyundai, modelo=i30, ano=2011, version=1.6 CRDi -> buscar"
+    },
+    {
+      "id": "TC-028",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "porton trasero",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=porton trasero -> pedir coche"
+    },
+    {
+      "id": "TC-029",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "motor de arranque skoda octavia 2010",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=motor de arranque, marca=Skoda, modelo=Octavia, ano=2010 -> pedir version"
+    },
+    {
+      "id": "TC-030",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "una bomba de direccion",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=bomba de direccion -> pedir coche"
+    },
+    {
+      "id": "TC-031",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "calefaccion / climatizador volvo v40 2014",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=climatizador, marca=Volvo, modelo=V40, ano=2014 -> pedir version"
+    },
+    {
+      "id": "TC-032",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "un trapecio delantero",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=trapecio delantero -> pedir coche"
+    },
+    {
+      "id": "TC-033",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "inyectores seat leon 2013 2.0 tdi",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=inyectores, marca=Seat, modelo=Leon, ano=2013, version=2.0 TDI -> buscar"
+    },
+    {
+      "id": "TC-034",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "un parabrisas",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=parabrisas -> pedir coche"
+    },
+    {
+      "id": "TC-035",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "caja mariposa ford fiesta 2009",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=caja mariposa, marca=Ford, modelo=Fiesta, ano=2009 -> pedir version"
+    },
+    {
+      "id": "TC-036",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "el ventilador del motor",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=ventilador del motor -> pedir coche"
+    },
+    {
+      "id": "TC-037",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "semieje delantero derecho dacia sandero 2015",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=semieje delantero derecho, marca=Dacia, modelo=Sandero, ano=2015 -> pedir version"
+    },
+    {
+      "id": "TC-038",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "una rejilla del paragolpes",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=rejilla del paragolpes -> pedir coche"
+    },
+    {
+      "id": "TC-039",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "egr mazda 3 2012 2.2 diesel",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=valvula EGR, marca=Mazda, modelo=3, ano=2012, version=2.2 Diesel -> buscar"
+    },
+    {
+      "id": "TC-040",
+      "categoria": "Flujo Ideal (Happy Path)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "quiero un volante con airbag",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=volante con airbag -> pedir coche"
+    },
+    {
+      "id": "TC-041",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "volbaguen golf 2010",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Aduana corrige -> marca=Volkswagen, modelo=Golf, ano=2010"
+    },
+    {
+      "id": "TC-042",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "parachoqe delantero",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Aduana corrige -> articulo=paragolpes delantero"
+    },
+    {
+      "id": "TC-043",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "un alternadr para reno megane",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=alternador, marca=Renault, modelo=Megane"
+    },
+    {
+      "id": "TC-044",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "retrobisor izkierdo seat ibitha",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=retrovisor izquierdo, marca=Seat, modelo=Ibiza"
+    },
+    {
+      "id": "TC-045",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "motro de un audi a tres",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=motor, marca=Audi, modelo=A3"
+    },
+    {
+      "id": "TC-046",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "caha de canvios",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=caja de cambios -> pedir coche"
+    },
+    {
+      "id": "TC-047",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "amortigador trasero peujot 207",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=amortiguador trasero, marca=Peugeot, modelo=207"
+    },
+    {
+      "id": "TC-048",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "vateria",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=bateria -> pedir coche"
+    },
+    {
+      "id": "TC-049",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "emvrague citroen csara",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=embrague, marca=Citroen, modelo=Xsara"
+    },
+    {
+      "id": "TC-050",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "turvo mercedez bens clase c",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=turbo, marca=Mercedes, modelo=Clase C"
+    },
+    {
+      "id": "TC-051",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "radiadr de agwa",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=radiador de agua -> pedir coche"
+    },
+    {
+      "id": "TC-052",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "capo de un forz fiesta",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=capo, marca=Ford, modelo=Fiesta"
+    },
+    {
+      "id": "TC-053",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "piloto traseroo derexo",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=piloto trasero derecho -> pedir coche"
+    },
+    {
+      "id": "TC-054",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "bonba de agua opel corsa",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=bomba de agua, marca=Opel, modelo=Corsa"
+    },
+    {
+      "id": "TC-055",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "crematera de direczion",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=cremallera de direccion -> pedir coche"
+    },
+    {
+      "id": "TC-056",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "el chivato del aceite",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "jerga -> articulo=sensor/testigo presion aceite -> pedir coche"
+    },
+    {
+      "id": "TC-057",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "la chapa de la puerta",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "jerga -> articulo=puerta (chapa) -> pedir lado y coche"
+    },
+    {
+      "id": "TC-058",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "el morro del coche",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "jerga -> articulo=frontal/paragolpes delantero -> aclarar pieza"
+    },
+    {
+      "id": "TC-059",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "las gomas / bujias",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "jerga -> articulo=bujias -> pedir coche"
+    },
+    {
+      "id": "TC-060",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "la rueda de repuesto",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "articulo=rueda de repuesto/galleta -> pedir coche"
+    },
+    {
+      "id": "TC-061",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: Seat Ibiza 2010 1.4",
+      "mensaje_usuario": "una lavadora",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea (no es pieza). NO borra memoria: sigue Seat Ibiza 2010"
+    },
+    {
+      "id": "TC-062",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: Seat Ibiza 2010 1.4",
+      "mensaje_usuario": "un billete de avion a Madrid",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea. Mantiene Seat Ibiza 2010 en memoria"
+    },
+    {
+      "id": "TC-063",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: Seat Ibiza 2010 1.4",
+      "mensaje_usuario": "ponme una pizza con extra de queso",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea. Mantiene memoria del coche"
+    },
+    {
+      "id": "TC-064",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: Seat Ibiza 2010 1.4",
+      "mensaje_usuario": "quiero comprar un perro",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea. Memoria intacta (Seat Ibiza 2010)"
+    },
+    {
+      "id": "TC-065",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: Seat Ibiza 2010 1.4",
+      "mensaje_usuario": "necesito un microondas",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea. No borra Seat Ibiza 2010"
+    },
+    {
+      "id": "TC-066",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: VW Golf 2012 2.0 TDI",
+      "mensaje_usuario": "dame un kebab",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea. Mantiene VW Golf 2012 en memoria"
+    },
+    {
+      "id": "TC-067",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: VW Golf 2012 2.0 TDI",
+      "mensaje_usuario": "unas zapatillas talla 42",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea. Memoria intacta"
+    },
+    {
+      "id": "TC-068",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: VW Golf 2012 2.0 TDI",
+      "mensaje_usuario": "un movil nuevo",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea. No borra el Golf de memoria"
+    },
+    {
+      "id": "TC-069",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: VW Golf 2012 2.0 TDI",
+      "mensaje_usuario": "entradas para el futbol",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea. Mantiene VW Golf 2012"
+    },
+    {
+      "id": "TC-070",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: VW Golf 2012 2.0 TDI",
+      "mensaje_usuario": "una nevera",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea. Memoria del coche intacta"
+    },
+    {
+      "id": "TC-071",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "motorr ford focuz dos mil cinco",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=motor, marca=Ford, modelo=Focus, ano=2005"
+    },
+    {
+      "id": "TC-072",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "alternadorr",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=alternador -> pedir coche"
+    },
+    {
+      "id": "TC-073",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "colekto de escape",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=colector de escape -> pedir coche"
+    },
+    {
+      "id": "TC-074",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "intercoler",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=intercooler -> pedir coche"
+    },
+    {
+      "id": "TC-075",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "el aceite del coche",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana: consumible no recambio -> aclarar/bloquear, no es pieza de desguace"
+    },
+    {
+      "id": "TC-076",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "Coche en memoria: Seat Ibiza 2010 1.4",
+      "mensaje_usuario": "y de paso un cafe",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Aduana bloquea cafe. Mantiene Seat Ibiza 2010"
+    },
+    {
+      "id": "TC-077",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "katalizador",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=catalizador -> pedir coche"
+    },
+    {
+      "id": "TC-078",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "maneta de la puerta esterior",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "corrige -> articulo=manilla exterior puerta -> pedir lado y coche"
+    },
+    {
+      "id": "TC-079",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "el palier",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "jerga -> articulo=palier/semieje -> pedir coche"
+    },
+    {
+      "id": "TC-080",
+      "categoria": "Ortografía y Aduana",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "la trompeta del diferencial",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "jerga -> articulo=trompeta diferencial -> pedir coche"
+    },
+    {
+      "id": "TC-081",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Alternador para Seat Ibiza 2010",
+      "mensaje_usuario": "y un faro derecho",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=faro derecho, marca=Seat, modelo=Ibiza, ano=2010"
+    },
+    {
+      "id": "TC-082",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Motor Ford Focus 2005 1.6",
+      "mensaje_usuario": "tambien necesito el turbo",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=turbo, mantiene Ford Focus 2005 1.6"
+    },
+    {
+      "id": "TC-083",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Caja de cambios Audi A3 2008",
+      "mensaje_usuario": "y los inyectores",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=inyectores, mantiene Audi A3 2008"
+    },
+    {
+      "id": "TC-084",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Paragolpes VW Golf 2012",
+      "mensaje_usuario": "y el capo a juego",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=capo, mantiene VW Golf 2012"
+    },
+    {
+      "id": "TC-085",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Retrovisor izquierdo Renault Megane 2011",
+      "mensaje_usuario": "ahora el derecho",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=retrovisor derecho, mantiene Renault Megane 2011"
+    },
+    {
+      "id": "TC-086",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bomba de agua Opel Astra 2009",
+      "mensaje_usuario": "y el radiador",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=radiador, mantiene Opel Astra 2009"
+    },
+    {
+      "id": "TC-087",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Faro delantero Peugeot 308 2013",
+      "mensaje_usuario": "necesito tambien el piloto trasero",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=piloto trasero, mantiene Peugeot 308 2013"
+    },
+    {
+      "id": "TC-088",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Embrague Citroen C4 2010",
+      "mensaje_usuario": "y el volante motor",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=volante motor, mantiene Citroen C4 2010"
+    },
+    {
+      "id": "TC-089",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Amortiguador BMW Serie 3 2015",
+      "mensaje_usuario": "ponme los cuatro",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=amortiguadores x4, mantiene BMW Serie 3 2015"
+    },
+    {
+      "id": "TC-090",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Puerta delantera Toyota Yaris 2010",
+      "mensaje_usuario": "y la trasera del mismo lado",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=puerta trasera, mantiene Toyota Yaris 2010"
+    },
+    {
+      "id": "TC-091",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Alternador para Seat Ibiza 2010",
+      "mensaje_usuario": "ahora para un Ford Focus",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO VEHICULO: marca=Ford, modelo=Focus, borra Seat Ibiza. Pieza=alternador (mantener)"
+    },
+    {
+      "id": "TC-092",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Motor VW Golf 2012",
+      "mensaje_usuario": "cambialo, es para un Audi A4",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO: marca=Audi, modelo=A4, borra Golf. Reevaluar año/version"
+    },
+    {
+      "id": "TC-093",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Faro Renault Megane 2011",
+      "mensaje_usuario": "mejor para mi Opel Corsa 2014",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO: marca=Opel, modelo=Corsa, ano=2014, borra Megane"
+    },
+    {
+      "id": "TC-094",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Turbo Peugeot 308 2013",
+      "mensaje_usuario": "no, es para un Citroen C3",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO: marca=Citroen, modelo=C3, borra Peugeot. Pieza=turbo"
+    },
+    {
+      "id": "TC-095",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Caja de cambios BMW Serie 1 2012",
+      "mensaje_usuario": "ahora un Mercedes Clase A 2015",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO: marca=Mercedes, modelo=Clase A, ano=2015, borra BMW"
+    },
+    {
+      "id": "TC-096",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Radiador Seat Leon 2013",
+      "mensaje_usuario": "perdona era para un Skoda Octavia",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO: marca=Skoda, modelo=Octavia, borra Seat. Pieza=radiador"
+    },
+    {
+      "id": "TC-097",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Embrague Ford Fiesta 2009",
+      "mensaje_usuario": "cambio total: Nissan Micra 2016 quiero un faro",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO + nueva pieza: articulo=faro, marca=Nissan, modelo=Micra, ano=2016"
+    },
+    {
+      "id": "TC-098",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bomba agua Kia Ceed 2012",
+      "mensaje_usuario": "ahora Hyundai i30",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO: marca=Hyundai, modelo=i30, borra Kia. Mantiene bomba agua, pedir año"
+    },
+    {
+      "id": "TC-099",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Piloto Fiat Punto 2006",
+      "mensaje_usuario": "mejor de un Lancia Y 2008",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO: marca=Lancia, modelo=Y, ano=2008, borra Fiat"
+    },
+    {
+      "id": "TC-100",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Motor Dacia Sandero 2015",
+      "mensaje_usuario": "no, Renault Clio 2017",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "CAMBIO: marca=Renault, modelo=Clio, ano=2017, borra Dacia. Pieza=motor"
+    },
+    {
+      "id": "TC-101",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿Es el Seat Ibiza de 5 puertas? | usuario responde",
+      "mensaje_usuario": "si",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Confirma SI -> aplica atributo 5 puertas al Seat Ibiza"
+    },
+    {
+      "id": "TC-102",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿La version es 1.9 TDI? | usuario",
+      "mensaje_usuario": "no",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Confirma NO -> descarta version 1.9 TDI, pedir version correcta"
+    },
+    {
+      "id": "TC-103",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: tengo un faro de 2010, ¿te vale? | usuario",
+      "mensaje_usuario": "ese mismo",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Confirma 'ese mismo' -> selecciona el faro propuesto"
+    },
+    {
+      "id": "TC-104",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿buscas el alternador de 90A? | usuario",
+      "mensaje_usuario": "si ese",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Confirma -> alternador 90A seleccionado"
+    },
+    {
+      "id": "TC-105",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿es diesel o gasolina? | usuario",
+      "mensaje_usuario": "diesel",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Aporta dato: combustible=diesel para filtrar version"
+    },
+    {
+      "id": "TC-106",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿el faro es derecho o izquierdo? | usuario",
+      "mensaje_usuario": "el derecho",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Aporta dato: lado=derecho"
+    },
+    {
+      "id": "TC-107",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿confirmas Ford Focus 2005? | usuario",
+      "mensaje_usuario": "correcto",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Confirma SI -> Ford Focus 2005 confirmado"
+    },
+    {
+      "id": "TC-108",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿te refieres al modelo nuevo? | usuario",
+      "mensaje_usuario": "si, el actual",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Confirma SI -> modelo generacion nueva"
+    },
+    {
+      "id": "TC-109",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿quieres tambien el embrague? | usuario",
+      "mensaje_usuario": "no, solo el motor",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Confirma NO embrague -> mantiene solo motor en pedido"
+    },
+    {
+      "id": "TC-110",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿es la version GTI? | usuario",
+      "mensaje_usuario": "esa",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Confirma -> version=GTI"
+    },
+    {
+      "id": "TC-111",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Faro Seat Ibiza 2010",
+      "mensaje_usuario": "y otro para el Golf de mi mujer 2014",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Doble contexto: nueva pieza faro para VW Golf 2014 (vehiculo nuevo)"
+    },
+    {
+      "id": "TC-112",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Motor Audi A3 2008",
+      "mensaje_usuario": "gracias, y ahora una bujia",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=bujia, mantiene Audi A3 2008"
+    },
+    {
+      "id": "TC-113",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Caja cambios Opel Astra 2009",
+      "mensaje_usuario": "y el palier derecho",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=palier derecho, mantiene Opel Astra 2009"
+    },
+    {
+      "id": "TC-114",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Paragolpes BMW Serie 3 2015",
+      "mensaje_usuario": "la rejilla tambien",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=rejilla paragolpes, mantiene BMW Serie 3 2015"
+    },
+    {
+      "id": "TC-115",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿algo mas? | usuario tras pedir motor",
+      "mensaje_usuario": "no, nada mas",
+      "intencion_esperada": "conversacion/busqueda",
+      "accion_datos_esperados": "Cierra pedido: NO añade mas piezas, mantiene motor"
+    },
+    {
+      "id": "TC-116",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Alternador Renault Clio 2017",
+      "mensaje_usuario": "mismo coche, dame el compresor",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION explicita: articulo=compresor, mantiene Renault Clio 2017"
+    },
+    {
+      "id": "TC-117",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Turbo Mercedes Clase A 2013",
+      "mensaje_usuario": "y para el mismo, los inyectores",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=inyectores, mantiene Mercedes Clase A 2013"
+    },
+    {
+      "id": "TC-118",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Faro VW Polo 2011",
+      "mensaje_usuario": "olvidalo, empezamos de cero",
+      "intencion_esperada": "ayuda/conversacion",
+      "accion_datos_esperados": "RESET memoria a peticion del usuario -> memoria vacía"
+    },
+    {
+      "id": "TC-119",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Motor Seat Leon 2013",
+      "mensaje_usuario": "y otra cosa, un retrovisor",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "FUSION: articulo=retrovisor, mantiene Seat Leon 2013, pedir lado"
+    },
+    {
+      "id": "TC-120",
+      "categoria": "Memoria y Contexto (Multi-turno)",
+      "contexto_previo": "Bot: ¿la del 1.4 o 1.6? | usuario",
+      "mensaje_usuario": "la primera",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "Confirma -> version=1.4 (primera opcion)"
+    },
+    {
+      "id": "TC-121",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Motor Ford Focus",
+      "mensaje_usuario": "no se de que año es",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Guiar: explicar dónde ver el año (permiso circulación / matrícula)"
+    },
+    {
+      "id": "TC-122",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Faro Seat Ibiza",
+      "mensaje_usuario": "¿donde miro el modelo?",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Guiar: indicar ficha técnica / portón trasero / manual"
+    },
+    {
+      "id": "TC-123",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "no se que pieza necesito",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Ofrecer opciones / preguntar síntoma del coche"
+    },
+    {
+      "id": "TC-124",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "dame opciones",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Mostrar categorías de piezas o cómo empezar la búsqueda"
+    },
+    {
+      "id": "TC-125",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "no lo se",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Desbloquear: pedir marca o describir la pieza"
+    },
+    {
+      "id": "TC-126",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Turbo VW Golf",
+      "mensaje_usuario": "¿como sé la versión de mi coche?",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Guiar: ver ficha técnica / cilindrada / potencia CV"
+    },
+    {
+      "id": "TC-127",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "estoy perdido, ayudame",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Ofrecer guía paso a paso de búsqueda"
+    },
+    {
+      "id": "TC-128",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Alternador Audi A3",
+      "mensaje_usuario": "no encuentro el numero de bastidor",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Guiar: dónde está el VIN (parabrisas, puerta, ficha)"
+    },
+    {
+      "id": "TC-129",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿que datos necesitas?",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Explicar cascada: artículo, marca, modelo, año, versión"
+    },
+    {
+      "id": "TC-130",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Caja cambios BMW",
+      "mensaje_usuario": "¿que es la version?",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Explicar concepto de versión/motorización"
+    },
+    {
+      "id": "TC-131",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "no entiendo nada de coches",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Modo asistido: preguntas simples una a una"
+    },
+    {
+      "id": "TC-132",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Faro Peugeot 308",
+      "mensaje_usuario": "no se si es derecho o izquierdo",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Guiar: referencia lado conductor/acompañante"
+    },
+    {
+      "id": "TC-133",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿por donde empiezo?",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Indicar primer paso: decir la pieza o la matrícula"
+    },
+    {
+      "id": "TC-134",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Motor Opel Corsa",
+      "mensaje_usuario": "no encuentro el año en los papeles",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Guiar: campo fecha matriculación en permiso circulación"
+    },
+    {
+      "id": "TC-135",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "ayuda",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Pedir contexto / ofrecer opciones de inicio"
+    },
+    {
+      "id": "TC-136",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Radiador Renault Megane",
+      "mensaje_usuario": "¿que mas datos te doy?",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Indicar faltan: año y versión"
+    },
+    {
+      "id": "TC-137",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "no se buscar esto",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Ofrecer flujo guiado o derivación si procede"
+    },
+    {
+      "id": "TC-138",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Embrague Citroen C4",
+      "mensaje_usuario": "¿como miro la cilindrada?",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Guiar: ficha técnica apartado P.1/P.2 cilindrada"
+    },
+    {
+      "id": "TC-139",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "dame una pista de que decir",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Sugerir ejemplo: 'pieza + marca + modelo + año'"
+    },
+    {
+      "id": "TC-140",
+      "categoria": "Bloqueos y Sugerencias (Ayuda)",
+      "contexto_previo": "Faro Seat Leon",
+      "mensaje_usuario": "no me aclaro con las versiones",
+      "intencion_esperada": "ayuda",
+      "accion_datos_esperados": "Ofrecer ayuda con CV/combustible o derivar a agente"
+    },
+    {
+      "id": "TC-141",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "quiero hablar con una persona",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a agente humano"
+    },
+    {
+      "id": "TC-142",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "pasame con un humano",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a agente humano"
+    },
+    {
+      "id": "TC-143",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "Motor Ford Focus 2005",
+      "mensaje_usuario": "dame el numero de telefono",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Facilitar teléfono / derivar a agente"
+    },
+    {
+      "id": "TC-144",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿teneis whatsapp?",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Facilitar WhatsApp / derivar a agente"
+    },
+    {
+      "id": "TC-145",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "pasame con alguien que entienda",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a agente humano especializado"
+    },
+    {
+      "id": "TC-146",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "Faro Seat Ibiza",
+      "mensaje_usuario": "esto no me sirve, llamame",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar / recoger teléfono para llamada"
+    },
+    {
+      "id": "TC-147",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "quiero atencion al cliente",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a atención al cliente"
+    },
+    {
+      "id": "TC-148",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "con un comercial por favor",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a comercial humano"
+    },
+    {
+      "id": "TC-149",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "prefiero hablar por telefono",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Ofrecer teléfono / derivar"
+    },
+    {
+      "id": "TC-150",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "Caja cambios Audi A3",
+      "mensaje_usuario": "¿me puede atender una persona real?",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a agente humano"
+    },
+    {
+      "id": "TC-151",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "no quiero bot, quiero humano",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a agente humano"
+    },
+    {
+      "id": "TC-152",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "mandame el contacto de whatsapp",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Facilitar contacto WhatsApp"
+    },
+    {
+      "id": "TC-153",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "Turbo VW Golf",
+      "mensaje_usuario": "necesito hablar con un mecanico",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a personal técnico humano"
+    },
+    {
+      "id": "TC-154",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿hay alguien ahi de verdad?",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar / ofrecer agente humano"
+    },
+    {
+      "id": "TC-155",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "llamadme al 600123456",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Recoger teléfono y derivar a agente"
+    },
+    {
+      "id": "TC-156",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "Faro Peugeot",
+      "mensaje_usuario": "pasame con ventas",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a departamento ventas humano"
+    },
+    {
+      "id": "TC-157",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "quiero poner una reclamacion",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a humano / atención reclamaciones"
+    },
+    {
+      "id": "TC-158",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "telefono de la empresa",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Facilitar teléfono / derivar"
+    },
+    {
+      "id": "TC-159",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "Motor Opel",
+      "mensaje_usuario": "esto es muy lioso, que me llame alguien",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Recoger contacto y derivar a agente"
+    },
+    {
+      "id": "TC-160",
+      "categoria": "Derivación a Humano (Agente)",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "contacto directo con un agente",
+      "intencion_esperada": "agente",
+      "accion_datos_esperados": "Derivar a agente humano"
+    },
+    {
+      "id": "TC-161",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Motor Ford Focus 2005",
+      "mensaje_usuario": "¿cuanto tarda en llegar?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Fuera de alcance búsqueda: tema envíos/plazos"
+    },
+    {
+      "id": "TC-162",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Faro Seat Ibiza",
+      "mensaje_usuario": "¿cuanto cuesta el envio?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Logística: coste de portes"
+    },
+    {
+      "id": "TC-163",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿hacen envios a Canarias?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Logística: zonas de envío"
+    },
+    {
+      "id": "TC-164",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Caja cambios Audi A3",
+      "mensaje_usuario": "¿el faro de un Ibiza 2010 le vale a un Ibiza 2012?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Compatibilidad entre piezas (fuera de alcance extractor)"
+    },
+    {
+      "id": "TC-165",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿se puede recoger en tienda?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Logística: recogida en punto físico"
+    },
+    {
+      "id": "TC-166",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Turbo VW Golf",
+      "mensaje_usuario": "¿esta pieza vale tambien para un Polo?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Compatibilidad cruzada entre modelos"
+    },
+    {
+      "id": "TC-167",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿cuanto vale el porte a Portugal?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Logística: coste envío internacional"
+    },
+    {
+      "id": "TC-168",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Motor BMW Serie 3",
+      "mensaje_usuario": "¿el motor de un 320 sirve en un 318?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Compatibilidad entre versiones"
+    },
+    {
+      "id": "TC-169",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿tienen garantia las piezas?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Fuera de alcance: condiciones/garantía"
+    },
+    {
+      "id": "TC-170",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Faro Renault Megane",
+      "mensaje_usuario": "¿puedo devolverlo si no encaja?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Fuera de alcance: devoluciones"
+    },
+    {
+      "id": "TC-171",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿que metodos de pago aceptais?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Fuera de alcance: pagos"
+    },
+    {
+      "id": "TC-172",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Radiador Opel Astra",
+      "mensaje_usuario": "¿el radiador del Astra vale para el Corsa?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Compatibilidad cruzada modelos"
+    },
+    {
+      "id": "TC-173",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿hacen factura con IVA?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Fuera de alcance: facturación"
+    },
+    {
+      "id": "TC-174",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Embrague Citroen C4",
+      "mensaje_usuario": "¿cuanto tardan en enviarlo a Madrid?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Logística: plazo + destino"
+    },
+    {
+      "id": "TC-175",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿la pieza es nueva o usada?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Fuera de alcance: estado pieza (info general)"
+    },
+    {
+      "id": "TC-176",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Piloto Seat Leon",
+      "mensaje_usuario": "¿este piloto encaja en el Toledo?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Compatibilidad cruzada modelos"
+    },
+    {
+      "id": "TC-177",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿envian por agencia o correos?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Logística: transportista"
+    },
+    {
+      "id": "TC-178",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Faro Peugeot 308",
+      "mensaje_usuario": "¿sirve el del 308 para el 3008?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Compatibilidad cruzada modelos"
+    },
+    {
+      "id": "TC-179",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿cuanto cuesta montar la pieza?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Fuera de alcance: servicio de montaje"
+    },
+    {
+      "id": "TC-180",
+      "categoria": "Fuera de Alcance y Logística",
+      "contexto_previo": "Motor Toyota Yaris",
+      "mensaje_usuario": "¿hacen envio urgente 24h?",
+      "intencion_esperada": "conversacion",
+      "accion_datos_esperados": "Logística: envío exprés"
+    },
+    {
+      "id": "TC-181",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "busco la referencia 03L130277B",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=03L130277B -> buscar por código (exime coche)"
+    },
+    {
+      "id": "TC-182",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "tengo el OEM 1K0615301AA",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=1K0615301AA (OEM)"
+    },
+    {
+      "id": "TC-183",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿teneis la pieza 6Q0959802?",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=6Q0959802"
+    },
+    {
+      "id": "TC-184",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "numero de pieza A2305000000",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=A2305000000"
+    },
+    {
+      "id": "TC-185",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "ref 8200000000",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=8200000000"
+    },
+    {
+      "id": "TC-186",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "Motor VW Golf 2012",
+      "mensaje_usuario": "la referencia es 06A906019",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=06A906019 (afina sobre coche en memoria)"
+    },
+    {
+      "id": "TC-187",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "codigo 1234567890AB",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=1234567890AB"
+    },
+    {
+      "id": "TC-188",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "OEM original 55353804",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=55353804"
+    },
+    {
+      "id": "TC-189",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "la pieza pone 04E905110",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=04E905110"
+    },
+    {
+      "id": "TC-190",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "referencia fabricante 7M3253609",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=7M3253609"
+    },
+    {
+      "id": "TC-191",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "tengo grabado 0280155868 en el inyector",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=0280155868"
+    },
+    {
+      "id": "TC-192",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "el codigo bosch 0986044470",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=0986044470 (alternador Bosch)"
+    },
+    {
+      "id": "TC-193",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "part number 31256775",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=31256775"
+    },
+    {
+      "id": "TC-194",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "Faro Seat Ibiza 2010",
+      "mensaje_usuario": "la ref del faro es 6J1941005",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=6J1941005, fusiona con Seat Ibiza"
+    },
+    {
+      "id": "TC-195",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "¿tienes la 5N0820803?",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=5N0820803"
+    },
+    {
+      "id": "TC-196",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "numero valeo 437555",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=437555 (Valeo)"
+    },
+    {
+      "id": "TC-197",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "ref 1J0837885 puerta",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=1J0837885, articulo=puerta (pista)"
+    },
+    {
+      "id": "TC-198",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "codigo largo BV6N-12A650-WB",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=BV6N-12A650-WB (formato Ford)"
+    },
+    {
+      "id": "TC-199",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "me dieron este numero: 9810000000",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=9810000000"
+    },
+    {
+      "id": "TC-200",
+      "categoria": "Búsquedas por Referencia",
+      "contexto_previo": "(memoria vacía)",
+      "mensaje_usuario": "la centralita lleva el 0261S05000",
+      "intencion_esperada": "busqueda",
+      "accion_datos_esperados": "referencia=0261S05000, articulo=centralita"
+    }
+  ]
+}
