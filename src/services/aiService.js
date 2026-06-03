@@ -125,7 +125,7 @@ const ejecutarBusquedaAPI = async (busquedaBD, mensajeParaUsuario, reqId, client
   const respuestaAPI = await apiRepository.consultarAPI({ q: query }, reqId, cliente);
 
   if (!respuestaAPI.piezas || respuestaAPI.piezas.length === 0) {
-    const cocheDesc = [busquedaBD.marca, busquedaBD.modelo, busquedaBD.ano]
+    const cocheDesc = [busquedaBD.marca, busquedaBD.modelo, busquedaBD.ano, busquedaBD.version]
       .filter(Boolean).join(" ");
     return {
       respuesta: `Lo sentimos, ahora mismo no tenemos "${busquedaBD.articulo || "esa pieza"}" para "${cocheDesc || "ese vehículo"}" en stock.\nTe proporciono el contacto de un agente que pueda ayudarte.`,
