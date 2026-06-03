@@ -55,31 +55,9 @@ const cargarDiccionario = (nombreArchivo) => {
 
 const FRASES_MARCAS    = cargarDiccionario("marcas.txt");
 const FRASES_ARTICULOS = cargarDiccionario("articulos.txt");
-const FRASES_MODELOS   = cargarDiccionario("modelos.txt");
 
 const PALABRAS_MARCAS    = extraerPalabrasUnicas(FRASES_MARCAS);
 const PALABRAS_ARTICULOS = extraerPalabrasUnicas(FRASES_ARTICULOS);
-const PALABRAS_MODELOS   = extraerPalabrasUnicas(FRASES_MODELOS);
-
-/**
- * ÍNDICES INVERTIDOS: Mapean cada palabra individual a los índices de las frases 
- * completas de los diccionarios. Esto permite validar conceptos multi-palabra.
- */
-const INDICE_ARTICULOS = {};
-FRASES_ARTICULOS.forEach((frase, index) => {
-  frase.split(/\s+/).forEach(palabra => {
-    if (!INDICE_ARTICULOS[palabra]) INDICE_ARTICULOS[palabra] = new Set();
-    INDICE_ARTICULOS[palabra].add(index);
-  });
-});
-
-const INDICE_MARCAS = {};
-FRASES_MARCAS.forEach((frase, index) => {
-  frase.split(/\s+/).forEach(palabra => {
-    if (!INDICE_MARCAS[palabra]) INDICE_MARCAS[palabra] = new Set();
-    INDICE_MARCAS[palabra].add(index);
-  });
-});
 
 const obtenerUmbralDinamico = (texto) => {
   const longitud = texto.length;
@@ -93,197 +71,132 @@ const obtenerMejorMatch = (palabra, listaPalabras) => {
   return stringSimilarity.findBestMatch(palabra, listaPalabras).bestMatch;
 };
 
-const clasificarPalabra = (palabraNorm, umbral) => {
-  const candidatos = [
-    { tipo: "articulo", match: obtenerMejorMatch(palabraNorm, PALABRAS_ARTICULOS) },
-    { tipo: "marca",    match: obtenerMejorMatch(palabraNorm, PALABRAS_MARCAS)    },
-    { tipo: "modelo",   match: obtenerMejorMatch(palabraNorm, PALABRAS_MODELOS)   },
-  ].sort((a, b) => b.match.rating - a.match.rating);
-
-  const ganador = candidatos[0];
-  if (ganador.match.rating >= umbral) {
-    return { reconocida: true, tipo: ganador.tipo, target: ganador.match.target };
-  }
-  return { reconocida: false };
-};
-
 /**
- * Determina si un grupo de palabras corregidas pertenecen a un mismo concepto (artículo o marca).
- * @param {string[]} palabras - Lista de palabras normalizadas y corregidas.
- * @param {Object} indice - El índice invertido a consultar (INDICE_ARTICULOS o INDICE_MARCAS).
- * @returns {boolean} True si todas las palabras aparecen en al menos una frase común del diccionario.
+ * Corrige y valida un campo (artículo o marca) PALABRA A PALABRA contra su PROPIO
+ * diccionario, preservando el orden y TODAS las palabras del usuario.
+ *
+ * Filosofía (la IA ya ha separado los campos, así que aquí solo limpiamos):
+ *  - Cada palabra se compara únicamente con su diccionario (un artículo no se valida
+ *    contra marcas ni viceversa) -> evita la contaminación entre campos.
+ *  - Las palabras reconocidas se corrigen (typos); las no reconocidas se CONSERVAN
+ *    tal cual en su sitio -> nunca tiramos modificadores ("delantero", "izquierdo")
+ *    ni partes de un concepto multi-palabra ("ESPEJO RETROVISOR IZQUIERDO").
+ *  - Los conectores ("de", "del"...) se mantienen literales -> "PERSIANA ENROLLABLE
+ *    ELECTRICA DE PUERTA" no pierde el "DE".
+ *  - Se admiten conceptos multi-palabra (marcas como "land rover" / "alfa romeo").
+ *
+ * @param {string} valor - El valor crudo del campo extraído por la IA.
+ * @param {string[]} palabrasDic - Vocabulario del campo (PALABRAS_ARTICULOS o PALABRAS_MARCAS).
+ * @returns {{ texto: string, algunaReconocida: boolean }}
+ *   `algunaReconocida` es false solo si NINGUNA palabra (ni unida) pertenece al
+ *   diccionario, lo que indica que el campo es ininteligible y debe rechazarse.
  */
-const sonPalabrasCompatibles = (palabras, indice) => {
-  if (palabras.length <= 1) return true;
+const corregirCampo = (valor, palabrasDic) => {
+  const tokens = aplicarSinonimos(String(valor)).split(/\s+/).filter(Boolean);
 
-  const setsDeIndices = palabras
-    .map(p => indice[textNormalize(p)])
-    .filter(Boolean);
+  // Solo aceptamos unir dos tokens si el resultado es CASI exacto. Así "para"+"golpes"
+  // → "paragolpes" (1.0) se une, pero "de"+"puerta" → "depuerta" (~0.83) NO se une y
+  // el conector "de" se conserva (p.ej. "PERSIANA ENROLLABLE ELECTRICA DE PUERTA").
+  const UMBRAL_UNION = 0.9;
 
-  if (setsDeIndices.length < palabras.length) return false;
+  const salida = [];
+  let algunaReconocida = false;
 
-  const interseccion = setsDeIndices.reduce((acc, currentSet) => {
-    return new Set([...acc].filter(idx => currentSet.has(idx)));
-  });
+  for (let i = 0; i < tokens.length; i++) {
+    const palabraNorm = textNormalize(tokens[i]);
+    if (!palabraNorm) continue;
 
-  return interseccion.size > 0;
+    // 1) Palabra partida (ej: "para" + "golpes" → "paragolpes"): solo si es casi exacta.
+    if (i < tokens.length - 1) {
+      const unido = palabraNorm + textNormalize(tokens[i + 1]);
+      const matchUnido = obtenerMejorMatch(unido, palabrasDic);
+      if (matchUnido.rating >= UMBRAL_UNION) {
+        logger.info(`Aduana: Uniendo palabras partidas "${tokens[i]} ${tokens[i + 1]}" → "${matchUnido.target}"`);
+        salida.push(matchUnido.target);
+        algunaReconocida = true;
+        i++; // consumimos la siguiente
+        continue;
+      }
+    }
+
+    // 2) Conectores gramaticales: se conservan literales y no se validan.
+    if (CONECTORES_IGNORADOS.has(palabraNorm)) {
+      salida.push(palabraNorm);
+      continue;
+    }
+
+    // 3) Palabra reconocida: la corregimos al término oficial del diccionario.
+    const umbral = obtenerUmbralDinamico(palabraNorm);
+    const match = obtenerMejorMatch(palabraNorm, palabrasDic);
+    if (match.rating >= umbral) {
+      if (palabraNorm !== textNormalize(match.target)) {
+        logger.info(`Aduana: Corregido "${tokens[i]}" → "${match.target}"`);
+      }
+      salida.push(match.target);
+      algunaReconocida = true;
+      continue;
+    }
+
+    // 4) No reconocida: la conservamos tal cual (no la tiramos).
+    salida.push(palabraNorm);
+  }
+
+  return { texto: salida.join(" ").trim(), algunaReconocida };
 };
 
+const tieneValor = (v) =>
+  v !== null && v !== undefined && String(v).trim() !== "" && String(v).toLowerCase() !== "null";
+
 /**
- * Valida y corrige los campos de búsqueda (articulo, marca, modelo).
- * Utiliza lógica de intersección de conjuntos para permitir entidades multi-palabra.
+ * Valida y corrige los campos de búsqueda (articulo, marca, modelo) preservando
+ * conceptos multi-palabra. Cada campo se valida de forma AISLADA contra su propio
+ * diccionario; el modelo se confía a la IA (códigos muy variables: "A3", "Serie 3",
+ * "Range Rover") y no se valida contra una lista para no romperlo.
  */
 const validarYCorregir = (ctx) => {
   const contextoNuevo = { ...ctx };
-  const originales = { articulo: ctx.articulo, marca: ctx.marca, modelo: ctx.modelo };
-  const camposAValidar = ["articulo", "marca", "modelo"];
-  
-  const articulosTemp = [];
-  const marcasTemp    = [];
-  const modelosTemp   = [];
-  const erroresFatales = [];
+  const errores = [];
 
-  for (const campo of camposAValidar) {
-    const valor = ctx[campo];
-    if (!valor || String(valor).trim() === "" || String(valor).toLowerCase() === "null") continue;
-
-    const textoConSinonimos = aplicarSinonimos(String(valor));
-    
-    // Filtramos conectores gramaticales para que "caja de cambios" se analice como ["caja", "cambios"]
-    const tokens = textoConSinonimos
-      .split(/\s+/)
-      .filter(Boolean)
-      .filter(token => !CONECTORES_IGNORADOS.has(textNormalize(token)));
-      
-    const palabrasCorregidas = [];
-    const tokensParaUnir = [];
-
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      const palabraNorm = textNormalize(token);
-      if (!palabraNorm) continue;
-
-      const umbral = obtenerUmbralDinamico(palabraNorm);
-      let clasificacion = clasificarPalabra(palabraNorm, umbral);
-
-      // Si no la reconoce, intentamos unirla con la siguiente palabra (ej: "oara" + "golpes")
-      if (!clasificacion.reconocida && i < tokens.length - 1) {
-        const siguienteToken = tokens[i + 1];
-        const tokenUnido = palabraNorm + textNormalize(siguienteToken);
-        const clasificacionUnida = clasificarPalabra(tokenUnido, obtenerUmbralDinamico(tokenUnido));
-        
-        if (clasificacionUnida.reconocida) {
-          clasificacion = clasificacionUnida;
-          logger.info(`Aduana: Uniendo palabras partidas "${token} ${siguienteToken}" → "${clasificacion.target}"`);
-          i++; // Saltamos el siguiente token porque ya lo hemos unido
-        }
-      }
-
-      if (!clasificacion.reconocida) {
-        if (campo === "modelo") {
-          modelosTemp.push(token);
-        } else if (!erroresFatales.some(e => e.campoOriginal === campo)) {
-          erroresFatales.push({ texto: token, campoOriginal: campo });
-        }
-        continue;
-      }
-
-      // Guardamos el match corregido en la lista temporal del campo
-      if (clasificacion.tipo === "articulo") {
-        if (campo === "articulo") palabrasCorregidas.push(clasificacion.target);
-        else articulosTemp.push(clasificacion.target);
-      } else if (clasificacion.tipo === "marca") {
-        if (campo === "marca") palabrasCorregidas.push(clasificacion.target);
-        else marcasTemp.push(clasificacion.target);
-      } else {
-        modelosTemp.push(token);
-      }
-
-      // Si era una palabra única y ha sido corregida (no unida)
-      if (palabraNorm !== textNormalize(clasificacion.target) && clasificacion.tipo !== "modelo") {
-        logger.info(`Aduana: Corregido "${token}" → "${clasificacion.target}" (${clasificacion.tipo})`);
-      }
+  // ARTÍCULO
+  if (tieneValor(ctx.articulo)) {
+    const { texto, algunaReconocida } = corregirCampo(ctx.articulo, PALABRAS_ARTICULOS);
+    if (algunaReconocida) {
+      contextoNuevo.articulo = texto;
+    } else {
+      contextoNuevo.articulo = null;
+      errores.push({ campo: "articulo", original: ctx.articulo });
     }
-
-    // Validación de compatibilidad al final del campo
-    if (palabrasCorregidas.length > 0) {
-      const indice = campo === "articulo" ? INDICE_ARTICULOS : (campo === "marca" ? INDICE_MARCAS : null);
-      
-      if (indice && sonPalabrasCompatibles(palabrasCorregidas, indice)) {
-        const conceptoUnico = palabrasCorregidas.join(" ");
-        if (campo === "articulo") articulosTemp.push(conceptoUnico);
-        else marcasTemp.push(conceptoUnico);
-      } else {
-        // FALLBACK: Si las palabras no forman una frase exacta, buscamos el mejor matching global
-        const listaFrases = campo === "articulo" ? FRASES_ARTICULOS : (campo === "marca" ? FRASES_MARCAS : []);
-        const textoLimpio = palabrasCorregidas.join(" "); // ej: "espejo retrovisor izquierdo"
-        
-        if (listaFrases.length > 0) {
-          const mejorMatchGlobal = obtenerMejorMatch(textoLimpio, listaFrases);
-          
-          if (mejorMatchGlobal && mejorMatchGlobal.rating > 0.65) {
-            logger.info(`Aduana: Fallback global para "${textoLimpio}" → "${mejorMatchGlobal.target}" (${campo})`);
-            if (campo === "articulo") articulosTemp.push(mejorMatchGlobal.target);
-            else marcasTemp.push(mejorMatchGlobal.target);
-          } else {
-            // Si el matching global es pobre, guardamos separadas (probablemente lanzará error de múltiples)
-            if (campo === "articulo") articulosTemp.push(...palabrasCorregidas);
-            else if (campo === "marca") marcasTemp.push(...palabrasCorregidas);
-          }
-        } else {
-          if (campo === "articulo") articulosTemp.push(...palabrasCorregidas);
-          else if (campo === "marca") marcasTemp.push(...palabrasCorregidas);
-        }
-      }
-    }
+  } else {
+    contextoNuevo.articulo = null;
   }
 
-  // Limpieza y reconstrucción (tomamos el primer concepto de cada campo)
-  contextoNuevo.articulo = articulosTemp.length > 0 ? [...new Set(articulosTemp)][0] : null;
-  contextoNuevo.modelo   = [...new Set(modelosTemp)].join(" ").trim() || null;
-  
-  const marcasUnicas = [...new Set(marcasTemp)];
-  contextoNuevo.marca = marcasUnicas.length > 0 ? marcasUnicas[0] : null;
+  // MARCA
+  if (tieneValor(ctx.marca)) {
+    const { texto, algunaReconocida } = corregirCampo(ctx.marca, PALABRAS_MARCAS);
+    if (algunaReconocida) {
+      contextoNuevo.marca = texto;
+    } else {
+      contextoNuevo.marca = null;
+      errores.push({ campo: "marca", original: ctx.marca });
+    }
+  } else {
+    contextoNuevo.marca = null;
+  }
 
-  if (erroresFatales.length > 0) {
-    // Agrupamos errores por campo para mostrar el valor original completo
-    const camposConError = [...new Set(erroresFatales.map(e => e.campoOriginal))];
+  // MODELO: se confía en la extracción de la IA (no se valida contra lista).
+  contextoNuevo.modelo = tieneValor(ctx.modelo) ? String(ctx.modelo).trim() : null;
 
-    const partesError = camposConError.map(campo => {
+  if (errores.length > 0) {
+    const partesError = errores.map(({ campo, original }) => {
       const nombreHumano = campo === "articulo" ? "el artículo" : "la marca";
-      const valorOriginal = originales[campo];
-      return `"${valorOriginal}" en ${nombreHumano}`;
+      return `"${original}" en ${nombreHumano}`;
     });
 
-    const mensaje = partesError.length === 1 
+    const mensaje = partesError.length === 1
       ? `No he logrado entender ${partesError[0]}. ¿Podrías revisarlo o usar un sinónimo?`
       : `No he logrado entender ${partesError.join(" ni ")}. ¿Podrías revisarlo?`;
 
     return { error: true, mensaje, contextoCorregido: contextoNuevo };
-  }
-
-  // Bloqueo por Múltiples Marcas (solo si son conceptos diferentes)
-  if (marcasTemp.length > 1) {
-    const unicasReal = [...new Set(marcasTemp)];
-    if (unicasReal.length > 1) {
-      return {
-        error: true,
-        mensaje: `Parece que has mencionado varias marcas (${unicasReal.join(", ")}). Por favor, dime solo una.`,
-        contextoCorregido: contextoNuevo,
-      };
-    }
-  }
-
-  // Bloqueo por Múltiples Artículos
-  if (articulosTemp.length > 1) {
-    const unicosReal = [...new Set(articulosTemp)];
-    if (unicosReal.length > 1) {
-      return {
-        error: true,
-        mensaje: `Parece que buscas varios artículos a la vez (${unicosReal.join(", ")}). Por favor, dime solo uno específico.`,
-        contextoCorregido: contextoNuevo,
-      };
-    }
   }
 
   return { error: false, contextoCorregido: contextoNuevo };
