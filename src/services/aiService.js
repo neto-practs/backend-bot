@@ -243,6 +243,7 @@ const seleccionRespuestaPremium = async (
           respuesta: "Lo siento, no he encontrado opciones disponibles para lo que buscas actualmente. ¿Podrías revisar el vehículo proporcionado?",
           piezas: [],
           sugerencias: [],
+          pedirWhatsapp: true,
           campoFaltante,
           pedirSugerencias: false,
           metadata: { totalReal: 0, queryLimpia: "" },
