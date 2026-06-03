@@ -200,8 +200,8 @@ const seleccionRespuestaPremium = async (
 
       const textoConversacion = routerResponse.respuesta_conversacion || "¿En qué te puedo ayudar hoy?";
       // Si la respuesta incluye un enlace a WhatsApp, señalamos al frontend que muestre el botón
-      const contieneWhatsApp = textoConversacion.includes("[→ WhatsApp]");
-      const textoLimpio = textoConversacion.replace(/\[→ WhatsApp\]/g, "").trim();
+      const contieneWhatsApp = textoConversacion.includes("[[WHATSAPP]]") || textoConversacion.includes("[→ WhatsApp]");
+      const textoLimpio = textoConversacion.replace(/\[\[WHATSAPP\]\]/g, "").replace(/\[→ WhatsApp\]/g, "").trim();
       return {
         respuesta: textoLimpio,
         piezas: [],
