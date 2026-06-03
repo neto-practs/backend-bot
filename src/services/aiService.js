@@ -9,6 +9,7 @@ const { seleccionRespuesta } = require("./chatService");
 const { VALORES_NULOS } = require("../config/constants");
 const { generarRespuestaUsuario, determinarCampoFaltante } = require("../utils/dialogHelper");
 const { validarYCorregir } = require("../utils/correctorOrtografico");
+const { validarVehiculo } = require("../utils/validadorVehiculo");
 
 const RUNPOD_IA_URL   = process.env.RUNPOD_IA_URL;
 const RUNPOD_IA_TOKEN = process.env.RUNPOD_IA_TOKEN;
@@ -301,6 +302,30 @@ const seleccionRespuestaPremium = async (
     );
 
     let busquedaBD = contextoFusionado;
+
+    // Validación de coherencia marca↔modelo contra el catálogo real (CSV).
+    // Caza casos como "seat laguna" (Laguna es Renault) sin bloquear modelos válidos.
+    if (busquedaBD.marca && busquedaBD.modelo) {
+      const { marcaReconocida, modeloCoherente } = validarVehiculo(busquedaBD.marca, busquedaBD.modelo);
+      if (marcaReconocida && !modeloCoherente) {
+        logger.warn({ reqId }, `Incoherencia vehículo: "${busquedaBD.modelo}" no pertenece a "${busquedaBD.marca}".`);
+        const modeloErroneo = busquedaBD.modelo;
+        // Conservamos la marca, descartamos el modelo inválido para que el usuario lo reescriba.
+        busquedaBD.modelo = null;
+        busquedaBD.ano = null;
+        busquedaBD.version = null;
+        return {
+          respuesta: `No encuentro el modelo "${modeloErroneo}" dentro de ${busquedaBD.marca}. ¿Podrías confirmarme el modelo correcto?`,
+          piezas: [],
+          sugerencias: [],
+          campoFaltante: "modelo",
+          pedirSugerencias: false,
+          metadata: { totalReal: 0, queryLimpia: "" },
+          nuevoContexto: JSON.stringify(busquedaBD),
+        };
+      }
+    }
+
     const tieneDatosEnMemoria = !!(
       busquedaBD.articulo || busquedaBD.marca || busquedaBD.modelo || busquedaBD.referencia
     );

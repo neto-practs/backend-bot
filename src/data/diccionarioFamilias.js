@@ -1,15 +1,16 @@
-// Archivo generado automáticamente - Mejorado con sinónimos exhaustivos
+// Archivo generado automáticamente desde el CSV - No editar a mano
+// Fusión CSV web + sinónimos manuales
 const DICCIONARIO_FAMILIAS = {
-  ACCESORIOS: [
+  "ACCESORIOS": [
     "accesorios",
     "extras",
     "complementos",
     "equipamiento",
     "accesorios coche",
     "tuning",
-    "gadgets",
+    "gadgets"
   ],
-  ALUMBRADO: [
+  "ALUMBRADO": [
     "alumbrado",
     "luces",
     "faros",
@@ -18,7 +19,7 @@ const DICCIONARIO_FAMILIAS = {
     "opticas",
     "lamparas",
     "bombillas",
-    "sistema de luces",
+    "sistema de luces"
   ],
   "CAMBIO EMBRAGUE": [
     "cambio embrague",
@@ -29,6 +30,7 @@ const DICCIONARIO_FAMILIAS = {
     "kit de embrague",
     "embragues",
     "sistema de transmision",
+    "cambio / embrague"
   ],
   "CARROCERÍA FRONTAL": [
     "carrocería frontal",
@@ -38,7 +40,7 @@ const DICCIONARIO_FAMILIAS = {
     "frontal",
     "trompa",
     "parte delantera",
-    "chapa frontal",
+    "chapa frontal"
   ],
   "CARROCERÍA LATERALES": [
     "carrocería laterales",
@@ -48,7 +50,7 @@ const DICCIONARIO_FAMILIAS = {
     "laterales",
     "lados",
     "piezas de lado",
-    "chapa lateral",
+    "chapa lateral"
   ],
   "CARROCERÍA TRASERA": [
     "carrocería trasera",
@@ -58,9 +60,9 @@ const DICCIONARIO_FAMILIAS = {
     "zaga",
     "maletero",
     "piezas de atras",
-    "chapa trasera",
+    "chapa trasera"
   ],
-  CLIMATIZACIÓN: [
+  "CLIMATIZACIÓN": [
     "climatización",
     "aire acondicionado",
     "calefaccion",
@@ -68,7 +70,7 @@ const DICCIONARIO_FAMILIAS = {
     "climatizador",
     "frio y calor",
     "refrigeracion habitaculo",
-    "aire",
+    "aire"
   ],
   "DIRECCIÓN TRANSMISIÓN": [
     "dirección transmisión",
@@ -79,25 +81,27 @@ const DICCIONARIO_FAMILIAS = {
     "ejes de transmision",
     "traccion",
     "articulaciones",
+    "dirección / transmisión"
   ],
-  ELECTRICIDAD: [
+  "ELECTRICIDAD": [
     "electricidad",
     "sistema electrico",
     "componentes electricos",
     "electronica",
     "sensores",
     "cableado",
-    "encendido",
+    "encendido"
   ],
-  GENERICO: [
+  "GENERICO": [
     "generico",
     "varios",
     "otros",
     "piezas sueltas",
     "sin familia",
     "general",
+    "genérico"
   ],
-  INTERIOR: [
+  "INTERIOR": [
     "interior",
     "habitaculo",
     "piezas de dentro",
@@ -105,7 +109,7 @@ const DICCIONARIO_FAMILIAS = {
     "cabina",
     "salpicadero y asientos",
     "guarnecidos",
-    "habitáculo",
+    "habitáculo"
   ],
   "MOTOR ADMISIÓN ESCAPE": [
     "motor admisión escape",
@@ -117,15 +121,16 @@ const DICCIONARIO_FAMILIAS = {
     "admisión",
     "escape",
     "piezas de motor",
+    "motor / admisión / escape"
   ],
-  MOTOS: [
+  "MOTOS": [
     "motos",
     "motocicletas",
     "ciclomotores",
     "piezas de moto",
     "repuestos moto",
     "scooter",
-    "quad",
+    "quad"
   ],
   "SUSPENSIÓN FRENOS": [
     "suspensión frenos",
@@ -136,7 +141,8 @@ const DICCIONARIO_FAMILIAS = {
     "amortiguadores y discos",
     "tren de rodaje",
     "pastillas y discos",
-  ],
+    "suspensión / frenos"
+  ]
 };
 
 module.exports = { DICCIONARIO_FAMILIAS };
