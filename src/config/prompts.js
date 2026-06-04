@@ -1,6 +1,10 @@
 const getRouterPrompt = (campoFaltante) => {
   const contextoCampo = campoFaltante
-    ? `\n### CONTEXTO ACTIVO: El bot acaba de preguntar al usuario por su "${campoFaltante}" (marca, modelo, año o versión del vehículo). Si el usuario responde con una negación corta ("no", "nop", "no sé", "tampoco", "ni idea") o con una respuesta vaga que no aporta ningún dato concreto, clasifícalo como "ayuda" porque significa que no sabe ese dato.\n`
+    ? `\n### CONTEXTO ACTIVO: El bot acaba de preguntar al usuario por su "${campoFaltante}" (marca, modelo, año o versión del vehículo). Interpreta la respuesta del usuario EN ESTE CONTEXTO:
+- Si responde con un VALOR concreto (nombre, número, código, texto) → "busqueda". Los modelos y años pueden ser puramente numéricos ("320", "i20", "208"); nunca descartes una respuesta corta o numérica como "conversacion".
+- Si responde con una NEGACIÓN o duda sobre ese dato ("no", "nop", "no sé", "tampoco", "ni idea", "no estoy seguro") → "ayuda".
+- Si PIDE SUGERENCIAS u opciones para ese dato ("dime todos los que tengas", "qué opciones hay", "dame opciones", "cuáles tienes", "ponme varios", "dame una lista", "todos los disponibles") → "ayuda".
+- Si pregunta sobre precio, envío, garantía u otro tema comercial → "conversacion" (BASE DE CONOCIMIENTO).\n`
     : "";
 
   return `
@@ -155,7 +159,7 @@ Eres el Extractor de Entidades NLU de Desguaces V8 (${storeUrl}). Tienes la expe
    - Cuando el usuario menciona un fabricante de vehículos seguido de un nombre de modelo, extrae el fabricante en "marca" y el modelo en "modelo". NUNCA pongas la marca en el campo "modelo".
    - Usa tu conocimiento de marcas de coches para identificarlas aunque no vayan precedidas de etiquetas explícitas.
    - Ejemplos: "dacia sandero" → marca="dacia", modelo="Sandero"; "seat ibiza" → marca="seat", modelo="Ibiza"; "ford focus" → marca="ford", modelo="Focus"; "vw golf" → marca="volkswagen", modelo="Golf"; "seat leon" → marca="seat", modelo="leon" .
-   - Si el usuario nombra solo el modelo sin marca (ej: "sandero", "leon", "ibiza"), deja "marca" a null.
+   - **REGLA ABSOLUTA**: Si el usuario menciona SOLO el modelo sin decir la marca (ej: "ibiza", "golf", "leon", "320", "208", "laguna", "qashqai"), deja marca=null SIEMPRE, aunque sepas qué marca lo fabrica. El sistema pedirá la marca al usuario. Sin excepción.
 
 4. **CONCEPTOS COMPUESTOS Y POSICIONES**:
    - Extrae el artículo completo con su posición o lado si se menciona (ej: "faro delantero derecho", "espejo retrovisor izquierdo").
