@@ -10,12 +10,11 @@ const SINONIMOS_HARDCODEADOS = {
   "parachoque": "paragolpes",
   "parachoke": "paragolpes",
   "parachoqe": "paragolpes",
+  "parachoque": "paragolpes",
   "paraqoke": "paragolpes",
   "paragolpe": "paragolpes",
   "embraque": "embrague",
-  "bonba": "bomba",
-  "limpiaparabrisas": "limpia parabrisas",
-  "limpialunas": "limpia parabrisas"
+  "bonba": "bomba"
 };
 
 // Palabras vacías o conectores gramaticales que ignoramos silenciosamente

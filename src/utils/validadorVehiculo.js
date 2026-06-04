@@ -51,32 +51,14 @@ const modeloCoherenteConMarca = (marcaCanonica, modeloTexto) => {
 
   const tokensUsuario = modeloNorm.split(/\s+/).filter(Boolean);
 
-  // Coincidencia fiable: la entrada del catálogo debe contener el token del usuario
-  // Y tener al menos 3 caracteres (evita falsos positivos con "G", "Z", "A", etc.).
-  const coincideEnCatalogo = (modelos) =>
-    Object.keys(modelos).some((mc) => {
-      const catNorm = textNormalize(mc);
-      return catNorm.length >= 3 && tokensUsuario.some(
-        (tok) => tok.length >= 2 && catNorm.includes(tok)
-      );
-    });
-
-  // Si el modelo está en el catálogo de ESTA marca → coherente.
-  if (coincideEnCatalogo(catalogo)) return true;
-
-  // Los tokens puramente numéricos/alfanuméricos (ej: "320d", "116", "2.0") son
-  // códigos de variante, no nombres de modelo. No los cruzamos con otras marcas
-  // porque el catálogo tiene entradas como "E 320" o "PEUGEOT 320" que provocarían
-  // falsos rechazos. Si el token no aparece en ESTA marca lo aceptamos sin más.
-  const soloCodigosTecnicos = tokensUsuario.every(tok => /\d/.test(tok));
-  if (soloCodigosTecnicos) return true;
-
-  // Para nombres propios (Golf, Laguna, Focus, Ibiza…) sí cruzamos con otras marcas.
-  // Si el nombre pertenece claramente a otra marca → rechazar.
-  const enOtraMarca = Object.entries(MAPA_VEHICULOS).some(
-    ([marca, modelos]) => marca !== marcaCanonica && coincideEnCatalogo(modelos)
-  );
-  return !enOtraMarca;
+  return Object.keys(catalogo).some((modeloCatalogo) => {
+    const catNorm = textNormalize(modeloCatalogo);
+    // Coincide si algún token del usuario está contenido en el modelo del catálogo
+    // o al revés (cubre "golf" ⊂ "golf vii" y "golf vii" ⊃ "golf").
+    return tokensUsuario.some(
+      (tok) => tok.length >= 2 && (catNorm.includes(tok) || tok.includes(catNorm))
+    );
+  });
 };
 
 /**
@@ -98,34 +80,4 @@ const validarVehiculo = (marca, modelo) => {
   return { marcaReconocida, marcaCanonica, modeloCoherente };
 };
 
-/**
- * Dado un modelo, busca en TODOS los catálogos qué marcas lo tienen.
- * Si exactamente UNA marca lo contiene → la devuelve en minúsculas.
- * Si ninguna o varias la contienen → devuelve null (no autocompletamos).
- *
- * Esto permite que "ibiza" → "seat", "golf" → "volkswagen", "laguna" → "renault",
- * pero "serie 3" no devuelva nada si apareciera en varias marcas, y que
- * "320d" (variante no registrada) tampoco devuelva nada.
- */
-const autocompletarMarca = (modeloTexto) => {
-  if (!modeloTexto) return null;
-  const modeloNorm = textNormalize(String(modeloTexto));
-  const tokensModelo = modeloNorm.split(/\s+/).filter(Boolean);
-
-  const marcasCompatibles = Object.entries(MAPA_VEHICULOS)
-    .filter(([, modelos]) =>
-      Object.keys(modelos).some((mc) => {
-        const catNorm = textNormalize(mc);
-        // Solo sentido catálogo→usuario (el catálogo contiene el token del usuario).
-        // Mínimo 3 chars en ambos para no matchear "Z", "G", etc.
-        return catNorm.length >= 3 && tokensModelo.some(
-          (tok) => tok.length >= 2 && catNorm.includes(tok)
-        );
-      })
-    )
-    .map(([marca]) => marca);
-
-  return marcasCompatibles.length === 1 ? marcasCompatibles[0].toLowerCase() : null;
-};
-
-module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca, autocompletarMarca };
+module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca };

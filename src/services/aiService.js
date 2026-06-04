@@ -9,7 +9,7 @@ const { seleccionRespuesta } = require("./chatService");
 const { VALORES_NULOS } = require("../config/constants");
 const { generarRespuestaUsuario, determinarCampoFaltante } = require("../utils/dialogHelper");
 const { validarYCorregir } = require("../utils/correctorOrtografico");
-const { validarVehiculo, autocompletarMarca } = require("../utils/validadorVehiculo");
+const { validarVehiculo } = require("../utils/validadorVehiculo");
 
 const RUNPOD_IA_URL   = process.env.RUNPOD_IA_URL;
 const RUNPOD_IA_TOKEN = process.env.RUNPOD_IA_TOKEN;
@@ -127,10 +127,6 @@ const ejecutarBusquedaAPI = async (busquedaBD, mensajeParaUsuario, reqId, client
   if (!respuestaAPI.piezas || respuestaAPI.piezas.length === 0) {
     const cocheDesc = [busquedaBD.marca, busquedaBD.modelo, busquedaBD.ano, busquedaBD.version]
       .filter(Boolean).join(" ");
-
-    // Conservamos pieza+marca+modelo pero liberamos año+versión.
-    // Así el siguiente mensaje del usuario ("dime opciones", "¿qué años tienes?") puede
-    // recibir sugerencias de año, y campoFaltante queda como "ano" para el router.
     return {
       respuesta: `Lo sentimos, ahora mismo no tenemos "${busquedaBD.articulo || "esa pieza"}" para "${cocheDesc || "ese vehículo"}" en stock.\nTe proporciono el contacto de un agente que pueda ayudarte.`,
       piezas: [],
@@ -184,7 +180,7 @@ const seleccionRespuestaPremium = async (
     }
 
     const campoFaltante = determinarCampoFaltante(contextoAnteriorParsed);
-
+    
     // 1. LLAMADA AL ENRUTADOR
     const routerPrompt = getRouterPrompt(campoFaltante);
     const textoRespuestaRouter = await llamarVLLM(routerPrompt, promptUsuario, ROUTER_SCHEMA);
@@ -307,17 +303,6 @@ const seleccionRespuestaPremium = async (
     );
 
     let busquedaBD = contextoFusionado;
-
-    // Autocompletar marca cuando el modelo la determina de forma unívoca en el catálogo.
-    // Solo actúa si el usuario no ha dado marca y el modelo existe en exactamente UNA marca.
-    // Si el modelo aparece en varias marcas (ej: "leon" en SEAT y CUPRA), no hacemos nada.
-    if (!busquedaBD.marca && busquedaBD.modelo) {
-      const marcaAuto = autocompletarMarca(busquedaBD.modelo);
-      if (marcaAuto) {
-        logger.info({ reqId }, `Marca autocompletada por catálogo: "${busquedaBD.modelo}" → "${marcaAuto}"`);
-        busquedaBD.marca = marcaAuto;
-      }
-    }
 
     // Validación de coherencia marca↔modelo contra el catálogo real (CSV).
     // Caza casos como "seat laguna" (Laguna es Renault) sin bloquear modelos válidos.
