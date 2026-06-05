@@ -1,6 +1,10 @@
 const getRouterPrompt = (campoFaltante) => {
   const contextoCampo = campoFaltante
-    ? `\n### CONTEXTO ACTIVO: El bot acaba de preguntar al usuario por su "${campoFaltante}" (marca, modelo, año o versión del vehículo). Si el usuario responde con una negación corta ("no", "nop", "no sé", "tampoco", "ni idea") o con una respuesta vaga que no aporta ningún dato concreto, clasifícalo como "ayuda" porque significa que no sabe ese dato.\n`
+    ? `\n### CONTEXTO ACTIVO: El bot acaba de preguntar al usuario por su "${campoFaltante}" (marca, modelo, año o versión del vehículo).
+- Si el usuario responde con CUALQUIER palabra o texto que pueda ser una marca, modelo, año o versión de vehículo (incluso nombres en inglés como "focus", "mustang", "tucson", o códigos como "a3", "308"), clasifícalo como "busqueda". Tiene prioridad absoluta sobre "conversacion".
+- Si el usuario menciona una pieza o recambio en vez de responder con el dato del vehículo (ej: "deposito expansion", "aleta delantera", "motor"), clasifícalo también como "busqueda": el usuario está cambiando o añadiendo el artículo que busca.
+- SOLO clasifica como "ayuda" si el usuario responde con una negación o admite que no sabe el dato ("no", "nop", "no sé", "tampoco", "ni idea", "no lo sé").
+- NUNCA clasifiques como "conversacion" una respuesta que mencione piezas, vehículos o datos de búsqueda.\n`
     : "";
 
   return `
@@ -33,8 +37,8 @@ El usuario utiliza cortesía, saludos, despedidas, insultos o habla de temas que
 - Excepción: Si dice "Hola, busco un alternador", es "busqueda" (por la Regla de Prioridad).
 
 4. "agente"
-El usuario expresa explícitamente que quiere hablar con un humano, agente, persona, o pide contacto directo como WhatsApp o teléfono.
-- Ejemplos: "quiero hablar con un humano", "pásame con un agente", "necesito una persona", "dame vuestro whatsapp", "número de teléfono", "quiero llamar".
+El usuario expresa explícitamente que quiere hablar con un humano, agente, persona, o pide contacto directo como WhatsApp o teléfono. También cuando el usuario, aunque use lenguaje brusco o insultos, pide que le pasen con alguien o quiere el WhatsApp.
+- Ejemplos: "quiero hablar con un humano", "pásame con un agente", "necesito una persona", "dame vuestro whatsapp", "número de teléfono", "quiero llamar", "que me pasen con un agente", "pasadme con alguien", "ponme con un humano", "quiero el whatsapp", "mandadme al whatsapp".
 
 ### CASOS ESPECIALES — SIEMPRE "conversacion" (nunca "busqueda" ni "ayuda"):
 
@@ -106,9 +110,9 @@ Respuesta: "Somos un desguace autorizado con muchos años de experiencia, trabaj
 Señales: mejor esta o esta otra, cuál recomiendas, qué diferencia hay, cuál está en mejor estado, cuál comprarías.
 Respuesta: "Esa comparativa la hace mejor un técnico que conoce las dos piezas. Te los conecto ahora y en minutos tienes respuesta: [[WHATSAPP]]"
 
-**OBJECIONES**
-Señales: más barata, me parece caro, no me fío, pieza usada, seguro que funciona, y si no vale, llega rota, mi mecánico dice.
-Respuesta: "Entiendo la duda, es totalmente normal. Por eso ofrecemos garantía, devolución y soporte técnico real. Si algo no va bien, lo resolvemos. ¿Quieres que un técnico te lo explique antes de decidir? [[WHATSAPP]]"
+**OBJECIONES / RESULTADO INCORRECTO**
+Señales: más barata, me parece caro, no me fío, pieza usada, seguro que funciona, y si no vale, llega rota, mi mecánico dice, eso no es lo que busco, esto no es lo que quiero, no es la pieza correcta, no me salen las piezas correctas, no me sirven esos resultados, los resultados están mal, me estás mostrando otra cosa, estas piezas no son las que pedí, me estás enseñando algo diferente.
+Respuesta: "Entiendo, eso no es lo que necesitas. Permíteme conectarte con un técnico que te encuentre exactamente la pieza correcta: [[WHATSAPP]]"
 
 **COMPRA INMEDIATA**
 Señales: quiero comprar, cómo hago el pedido, dónde pago, reservarla, guardarla, enviarla hoy, urgente, la quiero ya.
@@ -136,10 +140,19 @@ Respuesta: "Buena pregunta. Dependiendo de la pieza, puede que necesites tornill
 `.trim();
 };
 
-const getExtractorPrompt = (storeUrl) => {
+const getExtractorPrompt = (storeUrl, campoFaltante) => {
+  const contextoCampo = campoFaltante
+    ? `\n### CONTEXTO ACTIVO (MUY IMPORTANTE):
+El bot acaba de preguntar al usuario por el campo "${campoFaltante}". Por tanto la respuesta del usuario ES el valor de ese campo y debes ponerla en "${campoFaltante}".
+- Si el campo pedido es "modelo": la respuesta es el modelo, AUNQUE sea solo un número o un código corto ("407", "156", "206", "a3", "c4"). Ponla en "modelo". NUNCA la interpretes como "ano" ni como "referencia", y NO inventes ni cambies la "marca".
+- Si el campo pedido es "version": pon la respuesta completa en "version", nunca en "referencia".
+- Si el campo pedido es "ano": pon la respuesta en "ano".
+\n`
+    : "";
+
   return `
 Eres el Extractor de Entidades NLU de Desguaces V8 (${storeUrl}). Tienes la experiencia de un mecánico veterano de 100 años. Tu misión es extraer con precisión todos los datos técnicos presentes en la frase.
-
+${contextoCampo}
 ### 🛠️ REGLAS DE EXTRACCIÓN (PRECISIÓN Y EXHAUSTIVIDAD):
 
 1. **ANÁLISIS PALABRA POR PALABRA**:
@@ -147,21 +160,35 @@ Eres el Extractor de Entidades NLU de Desguaces V8 (${storeUrl}). Tienes la expe
    - Para cada palabra, evalúa si es una marca, un modelo, un artículo, un año o una referencia.
    - NO te detengas al encontrar el primer dato. Asegúrate de evaluar el mensaje completo para no dejarte detalles (ej: si dice "amortiguador ford focus", no pares en "ford", captura también "focus").
 
-2. **DIVISIÓN DE RESPONSABILIDAD**:
-   - **articulo y marca (EXTRACCIÓN LITERAL)**: Extrae exactamente el texto del usuario (ej: "airvak", "oara golpes"). Nunca ignores una palabra técnica por estar mal escrita. El backend las corregirá.
-   - **modelo y version (AUTOCORRECCIÓN IA)**: Aquí SÍ puedes usar tu conocimiento experto para normalizar nombres de modelos y versiones (ej: de "ibica" a "Ibiza").
+2. **EXTRACCIÓN LITERAL — PROHIBIDO INVENTAR**:
+   - **articulo y marca**: copia EXACTAMENTE el texto del usuario, aunque esté mal escrito ("airvak", "oara golpes", "aleta"). El backend lo corrige. JAMÁS sustituyas una palabra por otra que no escribió el usuario (ej: nunca "aleta" → "aleae"). Si dudas, copia tal cual.
+   - **NUNCA inventes ni deduzcas una marca** que el usuario no haya escrito. Un número de modelo ("156", "407") NO determina la marca: si el usuario no nombró la marca, deja "marca" a null.
+   - **modelo y version**: aquí SÍ puedes normalizar con tu conocimiento ("ibica" → "Ibiza", "leon" → "León").
 
-3. **IDENTIFICACIÓN DE MARCA Y MODELO JUNTOS**:
-   - Cuando el usuario menciona un fabricante de vehículos seguido de un nombre de modelo, extrae el fabricante en "marca" y el modelo en "modelo". NUNCA pongas la marca en el campo "modelo".
-   - Usa tu conocimiento de marcas de coches para identificarlas aunque no vayan precedidas de etiquetas explícitas.
-   - Ejemplos: "dacia sandero" → marca="dacia", modelo="Sandero"; "seat ibiza" → marca="seat", modelo="Ibiza"; "ford focus" → marca="ford", modelo="Focus"; "vw golf" → marca="volkswagen", modelo="Golf"; "seat leon" → marca="seat", modelo="leon" .
-   - Si el usuario nombra solo el modelo sin marca (ej: "sandero", "leon", "ibiza"), deja "marca" a null.
+3. **MODELOS NUMÉRICOS Y CÓDIGOS**:
+   - Muchísimos modelos son números o códigos alfanuméricos: Peugeot "206/207/308/407", Alfa Romeo "147/156/159", Audi "A3/A4/Q5", BMW "Serie 3", Citroën "C4", Mercedes "Clase A". Estos van SIEMPRE en "modelo", nunca en "ano".
+   - Un número de 4 dígitos entre 1980 y el año actual (ej: "2015") es un AÑO. Un número de 1-3 dígitos o con letra (ej: "407", "156", "a3") es un MODELO, no un año.
 
-4. **CONCEPTOS COMPUESTOS Y POSICIONES**:
-   - Extrae el artículo completo con su posición o lado si se menciona (ej: "faro delantero derecho", "espejo retrovisor izquierdo").
-   - **referencia**: Es SOLO para códigos de piezas. NUNCA metas palabras de posición en este campo.
+4. **IDENTIFICACIÓN DE MARCA Y MODELO JUNTOS**:
+   - Cuando aparezcan juntos, separa fabricante en "marca" y modelo en "modelo". NUNCA pongas la marca dentro de "modelo".
+   - Ejemplos: "dacia sandero" → marca="dacia", modelo="Sandero"; "peugeot 407" → marca="peugeot", modelo="407"; "alfa romeo 156" → marca="alfa romeo", modelo="156"; "vw golf" → marca="volkswagen", modelo="Golf".
+   - Si solo dan el modelo sin marca ("sandero", "156", "407"), deja "marca" a null.
 
-5. **IDIOMA**: Escribe SIEMPRE en español. NO traduzcas términos al inglés.
+5. **CONCEPTOS COMPUESTOS Y POSICIONES**:
+   - Extrae el artículo completo con su posición o lado ("faro delantero derecho", "portón trasero", "aleta delantera izquierda").
+   - **referencia**: SOLO códigos OEM de pieza (letras+números, p.ej. "5Q0615301"). NUNCA metas posiciones ni números de modelo aquí.
+
+6. **IDIOMA**: Escribe SIEMPRE en español. NO traduzcas términos al inglés. Lo que no aparezca en la frase va a null.
+
+### EJEMPLOS (entrada → salida)
+
+"peugeot 407" → {"_razonamiento":"Marca peugeot, modelo numérico 407.","afirmacion_simple":false,"negacion_simple":false,"articulo":null,"marca":"peugeot","modelo":"407","ano":null,"version":null,"referencia":null}
+
+(bot pidió el modelo) "407" → {"_razonamiento":"Respuesta a la pregunta de modelo: 407.","afirmacion_simple":false,"negacion_simple":false,"articulo":null,"marca":null,"modelo":"407","ano":null,"version":null,"referencia":null}
+
+"porton trasero para alfa romeo 156" → {"_razonamiento":"Artículo portón trasero, marca alfa romeo, modelo 156.","afirmacion_simple":false,"negacion_simple":false,"articulo":"porton trasero","marca":"alfa romeo","modelo":"156","ano":null,"version":null,"referencia":null}
+
+"aleta" → {"_razonamiento":"Artículo aleta, copiado literal.","afirmacion_simple":false,"negacion_simple":false,"articulo":"aleta","marca":null,"modelo":null,"ano":null,"version":null,"referencia":null}
 
 ### FORMATO JSON OBLIGATORIO:
 {

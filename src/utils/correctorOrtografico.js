@@ -10,11 +10,17 @@ const SINONIMOS_HARDCODEADOS = {
   "parachoque": "paragolpes",
   "parachoke": "paragolpes",
   "parachoqe": "paragolpes",
-  "parachoque": "paragolpes",
   "paraqoke": "paragolpes",
   "paragolpe": "paragolpes",
   "embraque": "embrague",
-  "bonba": "bomba"
+  "bonba": "bomba",
+  // Cristales / lunas
+  "ventanilla": "luna",
+  "ventanillas": "lunas",
+  "cristal": "luna",
+  "cristales": "lunas",
+  "vidrio": "luna",
+  "vidrios": "lunas",
 };
 
 // Palabras vacías o conectores gramaticales que ignoramos silenciosamente
@@ -61,9 +67,12 @@ const PALABRAS_ARTICULOS = extraerPalabrasUnicas(FRASES_ARTICULOS);
 
 const obtenerUmbralDinamico = (texto) => {
   const longitud = texto.length;
-  if (longitud <= 5) return 0.80;
-  if (longitud <= 9) return 0.68;
-  return 0.62;
+  // Un error de una sola letra en una palabra de 6-9 caracteres da ~0.667 de similitud
+  // (ej: "camvios"→"cambios", "volamte"→"volante"). Con 0.68 esos typos NO se corregían.
+  // 0.64 acepta el typo de 1 letra y sigue rechazando palabras no relacionadas (máx ~0.61).
+  if (longitud <= 5) return 0.78;
+  if (longitud <= 9) return 0.64;
+  return 0.60;
 };
 
 const obtenerMejorMatch = (palabra, listaPalabras) => {

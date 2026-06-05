@@ -264,7 +264,7 @@ const seleccionRespuestaPremium = async (
 
     // Caso 3: Búsqueda / Extracción de Datos
     logger.info({ reqId }, "Enrutador detectó búsqueda. Llamando al Extractor...");
-    const extractorPrompt = getExtractorPrompt(cliente.storeUrl);
+    const extractorPrompt = getExtractorPrompt(cliente.storeUrl, campoFaltante);
     const textoRespuestaExtractor = await llamarVLLM(extractorPrompt, promptUsuario, EXTRACTOR_SCHEMA);
     
     let datosExtraidos;

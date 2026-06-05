@@ -27,13 +27,16 @@ const fusionarContexto = (contextoAnterior, nuevoIntent) => {
 
   let final = { ...old };
 
+  const eqIgnoreCase = (a, b) =>
+    a && b ? String(a).trim().toLowerCase() === String(b).trim().toLowerCase() : a === b;
+
   // CASOS DE CASCADA
 
   // CASO A: Referencia OEM -> Borra todo lo demás
-  if (current.referencia && current.referencia !== old.referencia) {
+  if (current.referencia && !eqIgnoreCase(current.referencia, old.referencia)) {
     return {
       contexto: {
-        articulo: null, marca: null, modelo: null, 
+        articulo: null, marca: null, modelo: null,
         ano: null, version: null, referencia: current.referencia
       },
       realizarBusqueda: true
@@ -43,15 +46,15 @@ const fusionarContexto = (contextoAnterior, nuevoIntent) => {
   // CASO B: Cambio de Marca -> Resetea todo lo que va por debajo.
   // Excepción: si ya teníamos modelo pero no marca (extracción parcial anterior),
   // conservamos el modelo al recibir la marca que le corresponde.
-  if (current.marca && current.marca !== old.marca) {
+  if (current.marca && !eqIgnoreCase(current.marca, old.marca)) {
     final.marca = current.marca;
     final.modelo = current.modelo || (old.marca ? null : old.modelo);
     final.ano = old.marca ? null : old.ano;
     final.version = null;
     final.referencia = null;
-  } 
+  }
   // CASO C: Cambio de Modelo -> Mantiene marca, resetea lo que va por debajo
-  else if (current.modelo && current.modelo !== old.modelo) {
+  else if (current.modelo && !eqIgnoreCase(current.modelo, old.modelo)) {
     final.modelo = current.modelo;
     // Mantenemos final.marca heredado
     final.ano = null;
