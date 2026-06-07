@@ -25,7 +25,14 @@ const SINONIMOS_HARDCODEADOS = {
 
 // Palabras vacías o conectores gramaticales que ignoramos silenciosamente
 // para no generar errores falsos en la aduana al validar palabras sueltas.
-const CONECTORES_IGNORADOS = new Set(["de", "del", "el", "la", "los", "las", "para", "con", "y", "o"]);
+const CONECTORES_IGNORADOS = new Set([
+  "de", "del", "el", "la", "los", "las",
+  "un", "una", "unos", "unas",
+  "para", "con", "y", "o", "a", "al",
+  "mi", "tu", "su", "me", "te", "se",
+  "es", "son", "hay",
+  "lo", "le", "les",
+]);
 
 const aplicarSinonimos = (textoOriginal) => {
   if (!textoOriginal) return textoOriginal;
