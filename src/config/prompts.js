@@ -145,7 +145,7 @@ const getExtractorPrompt = (storeUrl, campoFaltante) => {
     ? `\n### CONTEXTO ACTIVO (MUY IMPORTANTE):
 El bot acaba de preguntar al usuario por el campo "${campoFaltante}". Por tanto la respuesta del usuario ES el valor de ese campo y debes ponerla en "${campoFaltante}".
 - Si el campo pedido es "modelo": la respuesta es el modelo, AUNQUE sea solo un número o un código corto ("407", "156", "206", "a3", "c4"). Ponla en "modelo". NUNCA la interpretes como "ano" ni como "referencia", y NO inventes ni cambies la "marca".
-- Si el campo pedido es "version": pon la respuesta completa en "version", nunca en "referencia".
+- Si el campo pedido es "version": pon el texto COMPLETO tal cual en "version" y deja "modelo" a null. NUNCA partas la respuesta ni extraigas parte de ella como modelo. Ejemplos: "FABIA COMBI 5J5" → version="FABIA COMBI 5J5", modelo=null. "1.6 TDI Sport" → version="1.6 TDI Sport", modelo=null. "FIESTA CBK" → version="FIESTA CBK", modelo=null.
 - Si el campo pedido es "ano": pon la respuesta en "ano".
 \n`
     : "";
