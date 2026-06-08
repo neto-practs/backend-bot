@@ -180,7 +180,25 @@ const seleccionRespuestaPremium = async (
     }
 
     const campoFaltante = determinarCampoFaltante(contextoAnteriorParsed);
-    
+
+    // 0. CORTOCIRCUITO: detección determinista de referencia OEM sin pasar por el router.
+    //    Regla: mensaje que, quitando espacios y guiones, es alfanumérico puro y tiene ≥5 chars,
+    //    Y contiene al menos un dígito (descarta palabras sueltas) Y no es un año de 4 dígitos.
+    //    Además: en mensajes con espacios, ninguna palabra suelta puede ser texto puro (≥3 letras sin dígitos),
+    //    lo que distingue "1K0 698 151" (OEM partido) de "GOLF VII BERLINA BQ1BE2" (versión con texto).
+    const mensajeLimpio = promptUsuario.trim().replace(/[\s\-]/g, "");
+    const palabras = promptUsuario.trim().split(/\s+/);
+    const tieneTokenTexto = palabras.some(p => p.length >= 3 && /^[A-Za-z]+$/.test(p));
+    const esOEM = /^[A-Za-z0-9]{5,}$/.test(mensajeLimpio)   // solo letras+números, ≥5 chars
+      && /\d/.test(mensajeLimpio)                             // tiene al menos un dígito
+      && !/^(19|20)\d{2}$/.test(mensajeLimpio)               // no es un año tipo 1980-2099
+      && !tieneTokenTexto;                                    // no contiene palabras de texto puro
+    if (esOEM) {
+      logger.info({ reqId }, `Cortocircuito OEM: "${promptUsuario}" → referencia detectada sin router.`);
+      const contextoOEM = { articulo: null, marca: null, modelo: null, ano: null, version: null, referencia: mensajeLimpio };
+      return await ejecutarBusquedaAPI(contextoOEM, `Buscando por referencia OEM: ${mensajeLimpio}`, reqId, cliente);
+    }
+
     // 1. LLAMADA AL ENRUTADOR
     const routerPrompt = getRouterPrompt(campoFaltante);
     const textoRespuestaRouter = await llamarVLLM(routerPrompt, promptUsuario, ROUTER_SCHEMA);
@@ -273,6 +291,17 @@ const seleccionRespuestaPremium = async (
     } catch (e) {
       logger.error({ reqId, err: e }, "Error procesando JSON del extractor.");
       datosExtraidos = {};
+    }
+
+    // Blindaje de versión: cuando el campo pendiente era "version", el extractor NO debe
+    // cambiar el modelo (podría extraer "VII" de "GOLF VII BERLINA BQ1BE2" y resetear el año).
+    // Forzamos modelo=null y nos aseguramos de que la versión tenga valor.
+    if (campoFaltante === "version") {
+      datosExtraidos.modelo = null;
+      datosExtraidos.marca  = null;
+      if (!datosExtraidos.version) {
+        datosExtraidos.version = promptUsuario.trim();
+      }
     }
 
     // Aduana: valida ortografía y existencia de marcas/artículos
