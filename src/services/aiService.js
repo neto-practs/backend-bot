@@ -9,7 +9,7 @@ const { seleccionRespuesta } = require("./chatService");
 const { VALORES_NULOS } = require("../config/constants");
 const { generarRespuestaUsuario, determinarCampoFaltante } = require("../utils/dialogHelper");
 const { validarYCorregir } = require("../utils/correctorOrtografico");
-const { validarVehiculo } = require("../utils/validadorVehiculo");
+const { validarVehiculo, inferirMarcaDeModelo } = require("../utils/validadorVehiculo");
 
 const RUNPOD_IA_URL   = process.env.RUNPOD_IA_URL;
 const RUNPOD_IA_TOKEN = process.env.RUNPOD_IA_TOKEN;
@@ -332,6 +332,16 @@ const seleccionRespuestaPremium = async (
     );
 
     let busquedaBD = contextoFusionado;
+
+    // Inferencia automática de marca: si hay modelo pero no marca,
+    // intentamos deducirla del catálogo. Solo se asigna si es inequívoca (1 sola marca).
+    if (!busquedaBD.marca && busquedaBD.modelo) {
+      const marcaInferida = inferirMarcaDeModelo(busquedaBD.modelo);
+      if (marcaInferida) {
+        logger.info({ reqId }, `Marca inferida automáticamente: "${busquedaBD.modelo}" → "${marcaInferida}"`);
+        busquedaBD = { ...busquedaBD, marca: marcaInferida.toLowerCase() };
+      }
+    }
 
     // Validación de coherencia marca↔modelo contra el catálogo real (CSV).
     // Caza casos como "seat laguna" (Laguna es Renault) sin bloquear modelos válidos.

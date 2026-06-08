@@ -85,4 +85,45 @@ const validarVehiculo = (marca, modelo) => {
   return { marcaReconocida, marcaCanonica, modeloCoherente };
 };
 
-module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca };
+/**
+ * Índice inverso modelo→marcas, construido una sola vez al arrancar.
+ * Para cada modelo del catálogo guarda qué marcas lo tienen.
+ * Si un modelo aparece en una sola marca → se puede inferir automáticamente.
+ */
+// Solo indexamos marcas que están en nuestro diccionario de marcas soportadas.
+// Filtra marcas oscuras (KUBA, AUVERLAND, KEEWAY como coche, etc.) que contaminarían la inferencia.
+const MARCAS_SOPORTADAS = new Set(
+  Object.keys(DICCIONARIO_MARCAS).map(k => {
+    // Resolvemos la clave del diccionario a la clave canónica del mapa
+    const norm = textNormalize(k);
+    return INDICE_SINONIMOS_MARCA[norm] || k.toUpperCase();
+  })
+);
+
+const INDICE_MODELO_A_MARCAS = {};
+for (const [marca, modelos] of Object.entries(MAPA_VEHICULOS)) {
+  if (!MARCAS_SOPORTADAS.has(marca)) continue; // ignorar marcas no soportadas
+  for (const modeloCatalogo of Object.keys(modelos)) {
+    const primerToken = textNormalize(modeloCatalogo).split(/\s+/)[0];
+    if (!primerToken || primerToken.length < 2) continue;
+    if (!INDICE_MODELO_A_MARCAS[primerToken]) INDICE_MODELO_A_MARCAS[primerToken] = new Set();
+    INDICE_MODELO_A_MARCAS[primerToken].add(marca);
+  }
+}
+
+/**
+ * Intenta inferir la marca a partir del modelo cuando el usuario no la ha indicado.
+ * Solo devuelve marca si el modelo pertenece EXCLUSIVAMENTE a una sola marca en el catálogo.
+ * @param {string} modeloTexto
+ * @returns {string|null} nombre canónico de marca o null si hay ambigüedad
+ */
+const inferirMarcaDeModelo = (modeloTexto) => {
+  if (!modeloTexto) return null;
+  const primerToken = textNormalize(String(modeloTexto)).split(/\s+/)[0];
+  if (!primerToken || primerToken.length < 2) return null;
+  const marcasSet = INDICE_MODELO_A_MARCAS[primerToken];
+  if (!marcasSet || marcasSet.size !== 1) return null; // ambiguo o desconocido
+  return [...marcasSet][0];
+};
+
+module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca, inferirMarcaDeModelo };
