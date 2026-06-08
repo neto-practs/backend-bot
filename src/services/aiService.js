@@ -182,14 +182,14 @@ const seleccionRespuestaPremium = async (
     const campoFaltante = determinarCampoFaltante(contextoAnteriorParsed);
 
     // 0. CORTOCIRCUITO: detección determinista de referencia OEM sin pasar por el router.
-    //    Regla: mensaje que, quitando espacios y guiones, es alfanumérico puro y tiene ≥5 chars,
+    //    Regla: mensaje que, quitando espacios y guiones, es alfanumérico puro y tiene ≥7 chars,
     //    Y contiene al menos un dígito (descarta palabras sueltas) Y no es un año de 4 dígitos.
     //    Además: en mensajes con espacios, ninguna palabra suelta puede ser texto puro (≥3 letras sin dígitos),
     //    lo que distingue "1K0 698 151" (OEM partido) de "GOLF VII BERLINA BQ1BE2" (versión con texto).
     const mensajeLimpio = promptUsuario.trim().replace(/[\s\-]/g, "");
     const palabras = promptUsuario.trim().split(/\s+/);
     const tieneTokenTexto = palabras.some(p => p.length >= 3 && /^[A-Za-z]+$/.test(p));
-    const esOEM = /^[A-Za-z0-9]{5,}$/.test(mensajeLimpio)   // solo letras+números, ≥5 chars
+    const esOEM = /^[A-Za-z0-9]{7,}$/.test(mensajeLimpio)   // solo letras+números, ≥7 chars
       && /\d/.test(mensajeLimpio)                             // tiene al menos un dígito
       && !/^(19|20)\d{2}$/.test(mensajeLimpio)               // no es un año tipo 1980-2099
       && !tieneTokenTexto;                                    // no contiene palabras de texto puro
