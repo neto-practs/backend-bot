@@ -63,7 +63,7 @@ const DICCIONARIO_MARCAS = {
   TESLA: ["tesla"],
   TOYOTA: ["toyota", "toyot"],
   VOLKSWAGEN: ["volkswagen", "volskwagen", "vag", "vw", "volks"],
-  VOLVO: ["volvo"],
+  VOLVO: ["volvo", "bolvo", "volbo"],
   YAMAHA: ["yamaha", "yamaja"],
 };
 
