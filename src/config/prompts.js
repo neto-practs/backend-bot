@@ -132,6 +132,33 @@ Respuesta: "Buena pregunta. Dependiendo de la pieza, puede que necesites tornill
 
 ---
 
+### EJEMPLOS FEW-SHOT (casos reales — aprende de ellos):
+
+Sin campo pendiente:
+- "hola busco un alternador" → busqueda
+- "renault cinco" → busqueda
+- "necesito un deposito de expansion" → busqueda
+- "bomba de direccion para ford focus" → busqueda
+- "eso no es lo que busco" → conversacion (OBJECIONES)
+- "quiero hablar con alguien" → agente
+- "cuánto cuesta el envío" → conversacion (ENVÍOS)
+
+Con campo pendiente (campoFaltante activo — SIEMPRE "busqueda" salvo que el usuario diga que no sabe):
+- (esperando marca) "es un ford" → busqueda
+- (esperando marca) "de skoda" → busqueda
+- (esperando modelo) "es un fiesta" → busqueda
+- (esperando modelo) "focus" → busqueda
+- (esperando modelo) "cinco" → busqueda  ← número en letra, es el modelo Renault 5
+- (esperando modelo) "no lo sé" → ayuda
+- (esperando año) "2013" → busqueda
+- (esperando año) "ni idea" → ayuda
+- (esperando version) "FABIA COMBI 5J5" → busqueda
+- (esperando version) "FIESTA CBK" → busqueda
+- (esperando version) "1.6 TDI Sport" → busqueda
+- (esperando version) "no se" → ayuda
+
+---
+
 ### FORMATO JSON OBLIGATORIO:
 {
   "intent": "busqueda" | "ayuda" | "conversacion" | "agente",
@@ -165,9 +192,10 @@ ${contextoCampo}
    - **NUNCA inventes ni deduzcas una marca** que el usuario no haya escrito. Un número de modelo ("156", "407") NO determina la marca: si el usuario no nombró la marca, deja "marca" a null.
    - **modelo y version**: aquí SÍ puedes normalizar con tu conocimiento ("ibica" → "Ibiza", "leon" → "León").
 
-3. **MODELOS NUMÉRICOS Y CÓDIGOS**:
+3. **MODELOS NUMÉRICOS, CÓDIGOS Y NÚMEROS EN LETRA**:
    - Muchísimos modelos son números o códigos alfanuméricos: Peugeot "206/207/308/407", Alfa Romeo "147/156/159", Audi "A3/A4/Q5", BMW "Serie 3", Citroën "C4", Mercedes "Clase A". Estos van SIEMPRE en "modelo", nunca en "ano".
    - Un número de 4 dígitos entre 1980 y el año actual (ej: "2015") es un AÑO. Un número de 1-3 dígitos o con letra (ej: "407", "156", "a3") es un MODELO, no un año.
+   - **NÚMEROS ESCRITOS EN LETRA**: si el usuario escribe el modelo con palabras en vez de dígitos, conviértelo al número correspondiente. Ejemplos: "renault cinco" → modelo="5"; "renault tres" → modelo="3"; "seat ciento veinticinco" → modelo="125"; "bmw serie tres" → modelo="Serie 3"; "mercedes clase a" → modelo="Clase A". Aplica esta regla siempre que el número en letra identifique claramente un modelo de vehículo.
 
 4. **IDENTIFICACIÓN DE MARCA Y MODELO JUNTOS**:
    - Cuando aparezcan juntos, separa fabricante en "marca" y modelo en "modelo". NUNCA pongas la marca dentro de "modelo".
