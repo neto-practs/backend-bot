@@ -126,4 +126,26 @@ const inferirMarcaDeModelo = (modeloTexto) => {
   return [...marcasSet][0];
 };
 
-module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca, inferirMarcaDeModelo };
+/**
+ * Comprueba si el texto dado aparece como token NO-primero en algún modelo del catálogo
+ * de la marca indicada. Sirve para detectar trims/versiones (GTI, GTD, Sport, RS…)
+ * que el usuario ha puesto en el campo modelo pero que no son modelos base.
+ * @param {string} marcaCanonica
+ * @param {string} textoModelo
+ * @returns {boolean}
+ */
+const esPosibleVersion = (marcaCanonica, textoModelo) => {
+  if (!marcaCanonica || !textoModelo) return false;
+  const catalogo = MAPA_VEHICULOS[marcaCanonica];
+  if (!catalogo) return false;
+  const tok = textNormalize(String(textoModelo));
+  if (!tok || tok.length < 2) return false;
+
+  return Object.keys(catalogo).some((modeloCatalogo) => {
+    const catTokens = textNormalize(modeloCatalogo).split(/\s+/);
+    // Solo consideramos tokens que NO son el primero (el primero es el modelo base)
+    return catTokens.slice(1).some(t => t === tok || t.includes(tok) || tok.includes(t));
+  });
+};
+
+module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca, inferirMarcaDeModelo, esPosibleVersion };

@@ -21,6 +21,27 @@ const SINONIMOS_HARDCODEADOS = {
   "cristales": "lunas",
   "vidrio": "luna",
   "vidrios": "lunas",
+  // Artículos que en el catálogo se escriben SIN preposición "de"
+  // pero los usuarios siempre la incluyen.
+  "caja de cambios": "caja cambios",
+  "cajas de cambios": "caja cambios",
+  "caja de transferencia": "caja transfer",
+  "caja de transmision": "caja transmision",
+  "caja de transmisión": "caja transmision",
+  "bomba de freno": "bomba freno",
+  "bomba de agua": "bomba agua",
+  "bomba de aceite": "bomba aceite",
+  "bomba de combustible": "bomba combustible",
+  "bomba de embrague": "bomba embrague",
+  "bomba de inyeccion": "bomba inyeccion",
+  "bomba de inyección": "bomba inyeccion",
+  "bomba de direccion": "bomba direccion",
+  "bomba de dirección": "bomba direccion",
+  "barra de cambio": "barra cambio",
+  "deposito de expansion": "deposito expansion",
+  "depósito de expansión": "deposito expansion",
+  "deposito de combustible": "deposito combustible",
+  "depósito de combustible": "deposito combustible",
 };
 
 // Palabras vacías o conectores gramaticales que ignoramos silenciosamente

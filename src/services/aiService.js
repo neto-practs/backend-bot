@@ -9,7 +9,7 @@ const { seleccionRespuesta } = require("./chatService");
 const { VALORES_NULOS } = require("../config/constants");
 const { generarRespuestaUsuario, determinarCampoFaltante } = require("../utils/dialogHelper");
 const { validarYCorregir } = require("../utils/correctorOrtografico");
-const { validarVehiculo, inferirMarcaDeModelo } = require("../utils/validadorVehiculo");
+const { validarVehiculo, inferirMarcaDeModelo, esPosibleVersion } = require("../utils/validadorVehiculo");
 
 const RUNPOD_IA_URL   = process.env.RUNPOD_IA_URL;
 const RUNPOD_IA_TOKEN = process.env.RUNPOD_IA_TOKEN;
@@ -257,6 +257,16 @@ const seleccionRespuestaPremium = async (
       logger.info({ reqId }, `Sugerencias obtenidas: ${sugerencias.length} opciones para '${campoFaltante}'.`);
 
       if (sugerencias.length === 0) {
+        // Si el campo que falta es año o versión (opcionales), buscamos igualmente
+        // con los datos que ya tenemos en lugar de mostrar un error.
+        const CAMPOS_OPCIONALES = ["ano", "version"];
+        if (CAMPOS_OPCIONALES.includes(campoFaltante)) {
+          logger.info({ reqId }, `Sin sugerencias para '${campoFaltante}' (campo opcional) → buscando con datos actuales.`);
+          const { articulo, marca, modelo } = contextoAnteriorParsed;
+          const cocheDesc = [marca, modelo].filter(Boolean).join(" ");
+          const mensajeSinCampo = `Buscando ${articulo || "la pieza"} para tu ${cocheDesc || "vehículo"} en nuestro catálogo...`;
+          return await ejecutarBusquedaAPI(contextoAnteriorParsed, mensajeSinCampo, reqId, cliente);
+        }
         return {
           respuesta: "Lo siento, no he encontrado opciones disponibles para lo que buscas actualmente. ¿Podrías revisar el vehículo proporcionado?",
           piezas: [],
@@ -346,23 +356,34 @@ const seleccionRespuestaPremium = async (
     // Validación de coherencia marca↔modelo contra el catálogo real (CSV).
     // Caza casos como "seat laguna" (Laguna es Renault) sin bloquear modelos válidos.
     if (busquedaBD.marca && busquedaBD.modelo) {
-      const { marcaReconocida, modeloCoherente } = validarVehiculo(busquedaBD.marca, busquedaBD.modelo);
+      const { marcaReconocida, marcaCanonica, modeloCoherente } = validarVehiculo(busquedaBD.marca, busquedaBD.modelo);
       if (marcaReconocida && !modeloCoherente) {
-        logger.warn({ reqId }, `Incoherencia vehículo: "${busquedaBD.modelo}" no pertenece a "${busquedaBD.marca}".`);
-        const modeloErroneo = busquedaBD.modelo;
-        // Conservamos la marca, descartamos el modelo inválido para que el usuario lo reescriba.
-        busquedaBD.modelo = null;
-        busquedaBD.ano = null;
-        busquedaBD.version = null;
-        return {
-          respuesta: `No encuentro el modelo "${modeloErroneo}" dentro de ${busquedaBD.marca}. ¿Podrías confirmarme el modelo correcto?`,
-          piezas: [],
-          sugerencias: [],
-          campoFaltante: "modelo",
-          pedirSugerencias: false,
-          metadata: { totalReal: 0, queryLimpia: "" },
-          nuevoContexto: JSON.stringify(busquedaBD),
-        };
+        // Antes de bloquear: comprobar si es un trim/versión (GTI, Sport, RS…)
+        // que aparece como sufijo en modelos del catálogo pero no es un modelo base.
+        if (esPosibleVersion(marcaCanonica, busquedaBD.modelo)) {
+          logger.info({ reqId }, `"${busquedaBD.modelo}" es trim/versión de ${marcaCanonica} → reclasificando como version.`);
+          busquedaBD.version = busquedaBD.version
+            ? `${busquedaBD.modelo} ${busquedaBD.version}`
+            : busquedaBD.modelo;
+          busquedaBD.modelo = null;
+          // Continuamos; el cascade pedirá el modelo base
+        } else {
+          logger.warn({ reqId }, `Incoherencia vehículo: "${busquedaBD.modelo}" no pertenece a "${busquedaBD.marca}".`);
+          const modeloErroneo = busquedaBD.modelo;
+          // Conservamos la marca, descartamos el modelo inválido para que el usuario lo reescriba.
+          busquedaBD.modelo = null;
+          busquedaBD.ano = null;
+          busquedaBD.version = null;
+          return {
+            respuesta: `No encuentro el modelo "${modeloErroneo}" dentro de ${busquedaBD.marca}. ¿Podrías confirmarme el modelo correcto?`,
+            piezas: [],
+            sugerencias: [],
+            campoFaltante: "modelo",
+            pedirSugerencias: false,
+            metadata: { totalReal: 0, queryLimpia: "" },
+            nuevoContexto: JSON.stringify(busquedaBD),
+          };
+        }
       }
     }
 
