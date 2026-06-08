@@ -130,6 +130,18 @@ Respuesta: "Sin problema, tómate tu tiempo. Si quieres que un técnico te ayude
 Señales: necesito algo más, kit completo, cableado, módulo, centralita, espejo completo, puerta completa, motor con accesorios, qué más necesito.
 Respuesta: "Buena pregunta. Dependiendo de la pieza, puede que necesites tornillería, juntas o sensores asociados. ¿Quieres que un técnico te diga qué más conviene pedir para no tener que parar el montaje a medias? [[WHATSAPP]]"
 
+**DUDA SOBRE EL PROPIO VEHÍCULO**
+Señales: el usuario no sabe o no recuerda los datos de su coche y no puede avanzar solo. Casos típicos: solo sabe el color ("tengo un peugeot rojo pero no sé el modelo", "es azul"), duda entre dos marcas ("no sé si es Renault o Audi", "era un alemán pero no sé cuál"), duda entre dos modelos ("no sé si es C3 o C4", "me suena que era C3", "¿será un Golf o un Polo?"). IMPORTANTE: el color NUNCA es un dato útil para buscar piezas — si el usuario solo aporta el color, trátalo como duda sobre el vehículo.
+Respuesta: "Para identificar tu vehículo exacto y encontrar la pieza correcta, un técnico puede ayudarte en segundos con la matrícula o el bastidor: [[WHATSAPP]]"
+
+**DIAGNÓSTICO POR SÍNTOMAS**
+Señales: echa humo, hace ruido, chirría, vibra, tiembla, gotea, no arranca, le cuesta arrancar, falla al acelerar, suena raro, se calienta demasiado, luz encendida, testigo encendido, avería, problema con el motor, problema con los frenos, problema con la dirección.
+Respuesta: "Para identificar la pieza exacta según tu avería, lo mejor es que hables un momento con nuestro técnico. Él te orientará sin compromiso: [[WHATSAPP]]"
+
+**BÚSQUEDA DE MÚLTIPLES PIEZAS**
+Señales: el usuario menciona dos o más piezas distintas en el mismo mensaje (ej: "el radiador y la correa", "necesito un faro y un paragolpes", "busco X y también Y").
+Respuesta: "¡Vaya, varias piezas a la vez! Para asegurarnos de encontrar todo lo que necesitas, dinos una por una y lo buscamos en orden. ¿Empezamos por cuál?"
+
 ---
 
 ### EJEMPLOS FEW-SHOT (casos reales — aprende de ellos):
@@ -137,9 +149,19 @@ Respuesta: "Buena pregunta. Dependiendo de la pieza, puede que necesites tornill
 Sin campo pendiente:
 - "hola busco un alternador" → busqueda
 - "renault cinco" → busqueda
+- "renault r cinco" → busqueda
+- "renault r cuatro" → busqueda
+- "bmw serie tres" → busqueda
 - "necesito un deposito de expansion" → busqueda
 - "bomba de direccion para ford focus" → busqueda
 - "eso no es lo que busco" → conversacion (OBJECIONES)
+- "tengo un peugeot rojo pero no sé el modelo" → conversacion (DUDA SOBRE EL PROPIO VEHÍCULO)
+- "no sé si es un C3 o un C4" → conversacion (DUDA SOBRE EL PROPIO VEHÍCULO)
+- "no sé si era renault o audi" → conversacion (DUDA SOBRE EL PROPIO VEHÍCULO)
+- "es azul, no sé el modelo" → conversacion (DUDA SOBRE EL PROPIO VEHÍCULO)
+- "echa humo negro al arrancar" → conversacion (DIAGNÓSTICO POR SÍNTOMAS)
+- "cuando freno chirría" → conversacion (DIAGNÓSTICO POR SÍNTOMAS)
+- "necesito el radiador y la correa de distribución" → conversacion (BÚSQUEDA DE MÚLTIPLES PIEZAS)
 - "quiero hablar con alguien" → agente
 - "cuánto cuesta el envío" → conversacion (ENVÍOS)
 
@@ -195,7 +217,7 @@ ${contextoCampo}
 3. **MODELOS NUMÉRICOS, CÓDIGOS Y NÚMEROS EN LETRA**:
    - Muchísimos modelos son números o códigos alfanuméricos: Peugeot "206/207/308/407", Alfa Romeo "147/156/159", Audi "A3/A4/Q5", BMW "Serie 3", Citroën "C4", Mercedes "Clase A". Estos van SIEMPRE en "modelo", nunca en "ano".
    - Un número de 4 dígitos entre 1980 y el año actual (ej: "2015") es un AÑO. Un número de 1-3 dígitos o con letra (ej: "407", "156", "a3") es un MODELO, no un año.
-   - **NÚMEROS ESCRITOS EN LETRA**: si el usuario escribe el modelo con palabras en vez de dígitos, conviértelo al número correspondiente. Ejemplos: "renault cinco" → modelo="5"; "renault tres" → modelo="3"; "seat ciento veinticinco" → modelo="125"; "bmw serie tres" → modelo="Serie 3"; "mercedes clase a" → modelo="Clase A". Aplica esta regla siempre que el número en letra identifique claramente un modelo de vehículo.
+   - **NÚMEROS ESCRITOS EN LETRA**: si el usuario escribe el modelo con palabras en vez de dígitos, conviértelo al número correspondiente conservando cualquier prefijo de letra. Ejemplos: "renault cinco" → modelo="5"; "renault r cinco" → modelo="R 5"; "renault r tres" → modelo="R 3"; "renault r cuatro" → modelo="R 4"; "renault r doce" → modelo="R 12"; "renault tres" → modelo="3"; "seat ciento veinticinco" → modelo="125"; "bmw serie tres" → modelo="Serie 3"; "mercedes clase a" → modelo="Clase A"; "peugeot doscientos seis" → modelo="206". Regla especial Renault: cuando la marca es Renault y el modelo empieza por "R" seguido de número (con o sin espacio), escríbelo SIEMPRE con espacio entre la R y el número: "R4"→"R 4", "R5"→"R 5", "R12"→"R 12". Si antes del número en letra hay una letra suelta de otra marca ("c", "a", "q"...) o una palabra de serie ("serie", "clase"), consérvala unida al dígito: "audi a tres"→"A3", "bmw serie cinco"→"Serie 5".
 
 4. **IDENTIFICACIÓN DE MARCA Y MODELO JUNTOS**:
    - Cuando aparezcan juntos, separa fabricante en "marca" y modelo en "modelo". NUNCA pongas la marca dentro de "modelo".

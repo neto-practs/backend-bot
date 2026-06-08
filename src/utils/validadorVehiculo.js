@@ -55,9 +55,14 @@ const modeloCoherenteConMarca = (marcaCanonica, modeloTexto) => {
     const catNorm = textNormalize(modeloCatalogo);
     // Coincide si algún token del usuario está contenido en el modelo del catálogo
     // o al revés (cubre "golf" ⊂ "golf vii" y "golf vii" ⊃ "golf").
-    return tokensUsuario.some(
-      (tok) => tok.length >= 2 && (catNorm.includes(tok) || tok.includes(catNorm))
-    );
+    return tokensUsuario.some((tok) => {
+      if (tok.length === 0) return false;
+      // Token corto (1 char): solo coincide si el modelo del catálogo ES exactamente ese token
+      // o empieza por él seguido de espacio/paréntesis. Evita que "5" matchee "altea (5p1)".
+      if (tok.length === 1) return catNorm === tok || catNorm.startsWith(tok + " ") || catNorm.startsWith(tok + "(");
+      // Token normal (≥2 chars): coincidencia por substring en cualquier dirección
+      return catNorm.includes(tok) || tok.includes(catNorm);
+    });
   });
 };
 
