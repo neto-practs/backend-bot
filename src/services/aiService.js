@@ -214,7 +214,9 @@ const seleccionRespuestaPremium = async (
     // Caso 1: Conversación (incluye posible reset de contexto)
     if (routerResponse.intent === "conversacion") {
       logger.info({ reqId }, "Enrutador detectó conversación.");
-      const esReset = routerResponse.reset === true;
+      // Si hay un campo pendiente (usuario en medio de una búsqueda), ignoramos cualquier reset
+      // accidental del router — el reset solo tiene sentido cuando la cascada no ha empezado.
+      const esReset = routerResponse.reset === true && !campoFaltante;
       if (esReset) logger.info({ reqId }, "Reset de conversación solicitado por el usuario.");
 
       const textoConversacion = routerResponse.respuesta_conversacion || "¿En qué te puedo ayudar hoy?";
