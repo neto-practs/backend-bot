@@ -3,7 +3,7 @@ const getRouterPrompt = (campoFaltante) => {
     ? `\n### CONTEXTO ACTIVO: El bot acaba de preguntar al usuario por su "${campoFaltante}" (marca, modelo, año o versión del vehículo).
 - Si el usuario responde con CUALQUIER palabra o texto que pueda ser una marca, modelo, año o versión de vehículo (incluso nombres en inglés como "focus", "mustang", "tucson", o códigos como "a3", "308"), clasifícalo como "busqueda". Tiene prioridad absoluta sobre "conversacion".
 - Si el usuario menciona una pieza o recambio en vez de responder con el dato del vehículo (ej: "deposito expansion", "aleta delantera", "motor"), clasifícalo también como "busqueda": el usuario está cambiando o añadiendo el artículo que busca.
-- SOLO clasifica como "ayuda" si el usuario responde con una negación o admite que no sabe el dato ("no", "nop", "no sé", "tampoco", "ni idea", "no lo sé").
+- SOLO clasifica como "ayuda" si el usuario responde con una negación, admite que no sabe el dato, o te pide que le muestres todas las opciones disponibles de lo que le estás preguntando. Ejemplos: "no", "nop", "no sé", "tampoco", "ni idea", "no lo sé", "dime todos los que tengas disponibles", "dime todas tus piezas", "dime todas las marcas/modelos/versiones que tengas", "qué años tienes".
 - NUNCA clasifiques como "conversacion" una respuesta que mencione piezas, vehículos o datos de búsqueda.\n`
     : "";
 
