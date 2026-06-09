@@ -6,6 +6,12 @@ const logger = require("./logger");
 
 // Sinónimos manuales aplicados antes de cualquier validación.
 const SINONIMOS_HARDCODEADOS = {
+  // Abreviaciones coloquiales de marcas de coche
+  "vw": "volkswagen",
+  "volks": "volkswagen",
+  "chevy": "chevrolet",
+  "merche": "mercedes",
+  "mitsu": "mitsubishi",
   "parachoques": "paragolpes",
   "parachoque": "paragolpes",
   "parachoke": "paragolpes",
