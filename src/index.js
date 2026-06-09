@@ -38,13 +38,18 @@ app.use(cors({
 
 app.use(express.json());
 
+app.get("/api/health", checkHealth);
+
+app.use((req, res, next) => {
+  if (req.body && req.body.message === 'ping_interno_ignorar') {
+      return res.status(200).send('Ping ignorado y silenciado');
+  }
+  next(); // Si es una petición real, dejamos que siga bajando
+});
+
 //Middlewares Globales
-app.use(requestLogger);
+app.use(requestLogger); // Ahora solo registra peticiones reales
 app.use("/api", apiLimiter);
-
-//Rutas publicas sin Auth
-app.get("/api/health",checkHealth);
-
 
 //Rutas protegidas con Auth
 app.use("/api/chat", authMiddleware, chatRoutes);
@@ -63,4 +68,5 @@ const startServer = async () => {
     logger.error("Fallo crítico:", error);
   }
 };
+
 startServer();
