@@ -148,4 +148,33 @@ const esPosibleVersion = (marcaCanonica, textoModelo) => {
   });
 };
 
-module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca, inferirMarcaDeModelo, esPosibleVersion };
+/**
+ * Intenta recuperar el modelo cuando el extractor metió "MODELO TRIM" entero en version.
+ * Comprueba si el primer token de versionTexto es un modelo conocido en el catálogo.
+ * @param {string} versionTexto - Valor del campo version (ej: "Golf GTD")
+ * @param {string|null} marcaTexto - Marca conocida (para acotar la búsqueda)
+ * @returns {{ modelo: string, version: string|null }|null}
+ */
+const extraerModeloDeVersion = (versionTexto, marcaTexto) => {
+  if (!versionTexto) return null;
+  const tokens = textNormalize(String(versionTexto)).split(/\s+/).filter(Boolean);
+  if (tokens.length < 2) return null;
+
+  const primerToken = tokens[0];
+  if (!primerToken || primerToken.length < 2) return null;
+
+  const marcasSet = INDICE_MODELO_A_MARCAS[primerToken];
+  if (!marcasSet || marcasSet.size === 0) return null;
+
+  if (marcaTexto) {
+    const marcaCanonica = resolverMarca(marcaTexto);
+    if (marcaCanonica && !marcasSet.has(marcaCanonica)) return null;
+  }
+
+  return {
+    modelo: primerToken,
+    version: tokens.slice(1).join(" ") || null,
+  };
+};
+
+module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca, inferirMarcaDeModelo, esPosibleVersion, extraerModeloDeVersion };

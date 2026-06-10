@@ -185,6 +185,9 @@ Con campo pendiente (campoFaltante activo — SIEMPRE "busqueda" salvo que el us
 - (esperando modelo) "es un fiesta" → busqueda
 - (esperando modelo) "focus" → busqueda
 - (esperando modelo) "cinco" → busqueda  ← número en letra, es el modelo Renault 5
+- (esperando modelo) "GTD" → busqueda  ← trim/variante del vehículo, es un dato de búsqueda
+- (esperando modelo) "GTI" → busqueda  ← ídem
+- (esperando modelo) "TDI" → busqueda  ← ídem
 - (esperando modelo) "no lo sé" → ayuda
 - (esperando año) "2013" → busqueda
 - (esperando año) "ni idea" → ayuda
@@ -237,6 +240,7 @@ ${contextoCampo}
    - Cuando aparezcan juntos, separa fabricante en "marca" y modelo en "modelo". NUNCA pongas la marca dentro de "modelo".
    - Ejemplos: "dacia sandero" → marca="dacia", modelo="Sandero"; "peugeot 407" → marca="peugeot", modelo="407"; "alfa romeo 156" → marca="alfa romeo", modelo="156"; "vw golf" → marca="volkswagen", modelo="Golf".
    - Si solo dan el modelo sin marca ("sandero", "156", "407"), deja "marca" a null.
+   - **MODELO + TRIM/VARIANTE**: cuando el usuario escribe el modelo seguido de una variante o acabado (GTI, GTD, TDI, TSI, OPC, RS, Sport, Hybrid, GTE, etc.), separa el nombre base del modelo en "modelo" y el trim en "version". NUNCA metas ambos juntos en "version". Ejemplos: "Golf GTD" → modelo="Golf", version="GTD"; "Corsa OPC" → modelo="Corsa", version="OPC"; "Focus RS" → modelo="Focus", version="RS"; "Ibiza FR" → modelo="Ibiza", version="FR"; "Golf GTD de 184 caballos" → modelo="Golf", version="GTD".
 
 5. **CONCEPTOS COMPUESTOS Y POSICIONES**:
    - Extrae el artículo completo con su posición o lado ("faro delantero derecho", "portón trasero", "aleta delantera izquierda").
@@ -253,6 +257,10 @@ ${contextoCampo}
 "porton trasero para alfa romeo 156" → {"_razonamiento":"Artículo portón trasero, marca alfa romeo, modelo 156.","afirmacion_simple":false,"negacion_simple":false,"articulo":"porton trasero","marca":"alfa romeo","modelo":"156","ano":null,"version":null,"referencia":null}
 
 "aleta" → {"_razonamiento":"Artículo aleta, copiado literal.","afirmacion_simple":false,"negacion_simple":false,"articulo":"aleta","marca":null,"modelo":null,"ano":null,"version":null,"referencia":null}
+
+"un golf gtd de 184 caballos" → {"_razonamiento":"Marca volkswagen implícita en Golf. Modelo base Golf, trim GTD en version. Los 184 caballos son potencia, no un campo extraíble.","afirmacion_simple":false,"negacion_simple":false,"articulo":null,"marca":"volkswagen","modelo":"Golf","ano":null,"version":"GTD","referencia":null}
+
+"cerradura para ibiza fr" → {"_razonamiento":"Artículo cerradura, marca seat implícita en Ibiza, modelo Ibiza, trim FR en version.","afirmacion_simple":false,"negacion_simple":false,"articulo":"cerradura","marca":"seat","modelo":"Ibiza","ano":null,"version":"FR","referencia":null}
 
 ### FORMATO JSON OBLIGATORIO:
 {

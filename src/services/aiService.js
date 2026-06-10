@@ -9,7 +9,7 @@ const { seleccionRespuesta } = require("./chatService");
 const { VALORES_NULOS } = require("../config/constants");
 const { generarRespuestaUsuario, determinarCampoFaltante } = require("../utils/dialogHelper");
 const { validarYCorregir } = require("../utils/correctorOrtografico");
-const { validarVehiculo, inferirMarcaDeModelo, esPosibleVersion } = require("../utils/validadorVehiculo");
+const { validarVehiculo, inferirMarcaDeModelo, esPosibleVersion, extraerModeloDeVersion } = require("../utils/validadorVehiculo");
 
 const RUNPOD_IA_URL   = process.env.RUNPOD_IA_URL;
 const RUNPOD_IA_TOKEN = process.env.RUNPOD_IA_TOKEN;
@@ -122,7 +122,20 @@ const ejecutarBusquedaAPI = async (busquedaBD, mensajeParaUsuario, reqId, client
     return datosCache;
   }
 
-  const respuestaAPI = await apiRepository.consultarAPI({ q: query }, reqId, cliente);
+  let respuestaAPI;
+  try {
+    respuestaAPI = await apiRepository.consultarAPI({ q: query }, reqId, cliente);
+  } catch (error) {
+    logger.error({ reqId }, `Catálogo no disponible tras reintentos: ${error.message}`);
+    return {
+      respuesta: "Disculpa, el catálogo no está respondiendo en este momento. Puedes intentarlo de nuevo en unos instantes o contactar con nosotros directamente.",
+      piezas: [],
+      sugerencias: [],
+      pedirSugerencias: false,
+      pedirWhatsapp: true,
+      nuevoContexto: JSON.stringify(busquedaBD),
+    };
+  }
 
   if (!respuestaAPI.piezas || respuestaAPI.piezas.length === 0) {
     const cocheDesc = [busquedaBD.marca, busquedaBD.modelo, busquedaBD.ano, busquedaBD.version]
@@ -344,6 +357,16 @@ const seleccionRespuestaPremium = async (
     );
 
     let busquedaBD = contextoFusionado;
+
+    // Recuperación modelo desde version: si el extractor metió "Golf GTD" entero en version
+    // y dejó modelo=null, extraemos el modelo base del primer token de version.
+    if (!busquedaBD.modelo && busquedaBD.version) {
+      const recuperado = extraerModeloDeVersion(busquedaBD.version, busquedaBD.marca);
+      if (recuperado) {
+        logger.info({ reqId }, `Modelo recuperado de version "${busquedaBD.version}" → modelo="${recuperado.modelo}", version="${recuperado.version}"`);
+        busquedaBD = { ...busquedaBD, modelo: recuperado.modelo, version: recuperado.version };
+      }
+    }
 
     // Inferencia automática de marca: si hay modelo pero no marca,
     // intentamos deducirla del catálogo. Solo se asigna si es inequívoca (1 sola marca).

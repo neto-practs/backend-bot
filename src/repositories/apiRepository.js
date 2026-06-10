@@ -10,7 +10,7 @@ let tiempoBloqueoHasta = 0;
 const UMBRAL_FALLOS = Number(process.env.CB_Umbral) || 5;
 const TIEMPO_RESETEO = Number(process.env.CB_Reset) || 60000;
 const DEFAULT_SUGERENCIAS_TIMEOUT = Number(process.env.SUGERENCIAS_TIMEOUT_MS) || 15000;
-const DEFAULT_API_TIMEOUT = Number(process.env.API_TIMEOUT_MS) || 5000;
+const DEFAULT_API_TIMEOUT = Number(process.env.API_TIMEOUT_MS) || 10000;
 
 /**
  * Consulta la base de datos de piezas de un cliente específico.
