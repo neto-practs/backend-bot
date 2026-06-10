@@ -7870,9 +7870,6 @@ const MAPA_VEHICULOS = {
       "2.2",
       "2.2 rs"
     ],
-    "CORSA SEDÁN": [
-      "1.7 d"
-    ],
     "CORSICA (1_69)": [
       "2.2",
       "3.1"
