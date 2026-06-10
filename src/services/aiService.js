@@ -9,7 +9,7 @@ const { seleccionRespuesta } = require("./chatService");
 const { VALORES_NULOS } = require("../config/constants");
 const { generarRespuestaUsuario, determinarCampoFaltante } = require("../utils/dialogHelper");
 const { validarYCorregir } = require("../utils/correctorOrtografico");
-const { validarVehiculo, inferirMarcaDeModelo, esPosibleVersion, extraerModeloDeVersion } = require("../utils/validadorVehiculo");
+const { validarVehiculo, inferirMarcaDeModelo, esPosibleVersion, extraerModeloDeVersion, buscarModeloEnMensaje } = require("../utils/validadorVehiculo");
 
 const RUNPOD_IA_URL   = process.env.RUNPOD_IA_URL;
 const RUNPOD_IA_TOKEN = process.env.RUNPOD_IA_TOKEN;
@@ -368,6 +368,23 @@ const seleccionRespuestaPremium = async (
       }
     }
 
+    // Escaneo del mensaje original: si modelo sigue siendo null, buscar en el mensaje
+    // tokens que coincidan con modelos reales del catálogo (whitelist seguro).
+    // Cubre casos como "partner", "berlingo" que el extractor no reconoce como modelos.
+    if (!busquedaBD.modelo) {
+      const encontrado = buscarModeloEnMensaje(promptUsuario, busquedaBD.marca);
+      if (encontrado) {
+        logger.info({ reqId }, `Modelo hallado en mensaje: "${encontrado.modelo}"${encontrado.marcaInferida ? `, marca inferida: "${encontrado.marcaInferida}"` : ""}`);
+        busquedaBD = {
+          ...busquedaBD,
+          modelo: encontrado.modelo,
+          ...(encontrado.marcaInferida && !busquedaBD.marca
+            ? { marca: encontrado.marcaInferida.toLowerCase() }
+            : {}),
+        };
+      }
+    }
+
     // Inferencia automática de marca: si hay modelo pero no marca,
     // intentamos deducirla del catálogo. Solo se asigna si es inequívoca (1 sola marca).
     if (!busquedaBD.marca && busquedaBD.modelo) {
@@ -393,21 +410,30 @@ const seleccionRespuestaPremium = async (
           busquedaBD.modelo = null;
           // Continuamos; el cascade pedirá el modelo base
         } else {
-          logger.warn({ reqId }, `Incoherencia vehículo: "${busquedaBD.modelo}" no pertenece a "${busquedaBD.marca}".`);
-          const modeloErroneo = busquedaBD.modelo;
-          // Conservamos la marca, descartamos el modelo inválido para que el usuario lo reescriba.
-          busquedaBD.modelo = null;
-          busquedaBD.ano = null;
-          busquedaBD.version = null;
-          return {
-            respuesta: `No encuentro el modelo "${modeloErroneo}" dentro de ${busquedaBD.marca}. ¿Podrías confirmarme el modelo correcto?`,
-            piezas: [],
-            sugerencias: [],
-            campoFaltante: "modelo",
-            pedirSugerencias: false,
-            metadata: { totalReal: 0, queryLimpia: "" },
-            nuevoContexto: JSON.stringify(busquedaBD),
-          };
+          // Antes de descartar: intentar inferir la marca correcta desde el modelo.
+          // Cubre casos como Corsa → el extractor alucina "chevrolet" pero el modelo
+          // pertenece inequívocamente a Opel según el catálogo.
+          const marcaCorrecta = inferirMarcaDeModelo(busquedaBD.modelo);
+          if (marcaCorrecta) {
+            logger.info({ reqId }, `Marca corregida: "${busquedaBD.marca}" → "${marcaCorrecta.toLowerCase()}" (inferida del modelo "${busquedaBD.modelo}")`);
+            busquedaBD = { ...busquedaBD, marca: marcaCorrecta.toLowerCase() };
+            // Continuamos con la marca corregida, sin molestar al usuario.
+          } else {
+            logger.warn({ reqId }, `Incoherencia vehículo: "${busquedaBD.modelo}" no pertenece a "${busquedaBD.marca}".`);
+            const modeloErroneo = busquedaBD.modelo;
+            busquedaBD.modelo = null;
+            busquedaBD.ano = null;
+            busquedaBD.version = null;
+            return {
+              respuesta: `No encuentro el modelo "${modeloErroneo}" dentro de ${busquedaBD.marca}. ¿Podrías confirmarme el modelo correcto?`,
+              piezas: [],
+              sugerencias: [],
+              campoFaltante: "modelo",
+              pedirSugerencias: false,
+              metadata: { totalReal: 0, queryLimpia: "" },
+              nuevoContexto: JSON.stringify(busquedaBD),
+            };
+          }
         }
       }
     }

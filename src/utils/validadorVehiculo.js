@@ -149,6 +149,34 @@ const esPosibleVersion = (marcaCanonica, textoModelo) => {
 };
 
 /**
+ * Escanea el mensaje original del usuario buscando tokens que sean primer token
+ * de un modelo conocido en el catálogo. Seguro porque usa el catálogo como whitelist.
+ * @param {string} mensajeTexto - Mensaje original del usuario
+ * @param {string|null} marcaTexto - Marca ya conocida (para acotar la búsqueda)
+ * @returns {{ modelo: string, marcaInferida: string|null }|null}
+ */
+const buscarModeloEnMensaje = (mensajeTexto, marcaTexto) => {
+  if (!mensajeTexto) return null;
+  // Filtramos tokens cortos (≤2 chars) para descartar conectores: "mi", "un", "de"...
+  const tokens = textNormalize(String(mensajeTexto)).split(/\s+/).filter(t => t.length >= 3);
+
+  const marcaCanonica = marcaTexto ? resolverMarca(marcaTexto) : null;
+
+  for (const token of tokens) {
+    const marcasSet = INDICE_MODELO_A_MARCAS[token];
+    if (!marcasSet || marcasSet.size === 0) continue;
+
+    if (marcaCanonica) {
+      if (marcasSet.has(marcaCanonica)) return { modelo: token, marcaInferida: null };
+    } else {
+      const marcaInferida = marcasSet.size === 1 ? [...marcasSet][0] : null;
+      return { modelo: token, marcaInferida };
+    }
+  }
+  return null;
+};
+
+/**
  * Intenta recuperar el modelo cuando el extractor metió "MODELO TRIM" entero en version.
  * Comprueba si el primer token de versionTexto es un modelo conocido en el catálogo.
  * @param {string} versionTexto - Valor del campo version (ej: "Golf GTD")
@@ -177,4 +205,4 @@ const extraerModeloDeVersion = (versionTexto, marcaTexto) => {
   };
 };
 
-module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca, inferirMarcaDeModelo, esPosibleVersion, extraerModeloDeVersion };
+module.exports = { validarVehiculo, resolverMarca, modeloCoherenteConMarca, inferirMarcaDeModelo, esPosibleVersion, extraerModeloDeVersion, buscarModeloEnMensaje };

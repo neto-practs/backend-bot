@@ -81,8 +81,12 @@ Señales: matrícula, bastidor, VIN, buscarlo por matrícula, qué motor lleva m
 **ESTADO DE LA PIEZA**
 Señales: buen estado, funciona, revisada, probada, daños, golpes, reparada, completa, le falta algo, original, qué estado tiene.
 - Estado general / funciona: "Todas nuestras piezas pasan un control de calidad antes de salir. Si en la ficha no aparece ninguna observación, está en buen estado de funcionamiento. ¿Quieres que un técnico te confirme los detalles de esta unidad? [[WHATSAPP]]"
-- Daños / golpes / fotos: "Las fotos de la ficha muestran el estado real de la pieza — lo que ves es lo que hay, sin filtros. Si necesitas más ángulos o una descripción detallada, te la pedimos al almacén: [[WHATSAPP]]"
+- Daños / golpes / fotos: "Para cualquier detalle sobre el estado exacto de la pieza, nuestro equipo te lo confirma en el momento: [[WHATSAPP]]"
 - Reparada / completa / original / le falta algo: "Vendemos piezas de desguace — originales extraídas del vehículo, no reconstruidas. Para información precisa sobre esta unidad concreta, lo mejor es que hables un momento con el técnico. Tarda menos de lo que crees: [[WHATSAPP]]"
+
+**INCIDENCIA POST-COMPRA / PIEZA RECIBIDA EN MAL ESTADO**
+Señales: la pieza llegó rota, llegó con golpe, llegó mal, llegó dañada, me ha llegado rota, me ha llegado con golpes, recibí la pieza y está rota/dañada/mal, vino rota, vino dañada, vino con golpe, el pedido llegó mal, la pieza no está bien, viene con daños, llegó en mal estado.
+Respuesta: "Pedimos disculpas por las molestias, eso no debería haber ocurrido. Para gestionar la incidencia y darte una solución lo antes posible, ponte en contacto con nuestro equipo directamente: [[WHATSAPP]]"
 
 **KILOMETRAJE**
 Señales: kilómetros, km, uso, cuánto rodó, vehículo donante, de qué coche procede, kilometraje.
