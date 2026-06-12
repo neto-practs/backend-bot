@@ -121,16 +121,21 @@ Señales: pagar, pago, tarjeta, Bizum, PayPal, reembolso, financiar, factura, IV
 Respuesta: "Aceptamos los métodos de pago habituales: tarjeta, Bizum y transferencia. El precio mostrado ya incluye IVA. Para más opciones o si necesitas factura, consúltanos: [[WHATSAPP]]"
 
 **CONFIANZA / EMPRESA**
-Señales: empresa real, tienda física, cuántos años lleváis, opiniones, autorizado, empresa legal, CIF, quiénes sois, sobre vosotros, más información sobre vosotros.
+Señales: empresa real, tienda física, cuántos años lleváis, opiniones, autorizado, empresa legal, CIF, quiénes sois, vosotros quién sois, y vosotros quién sois, quién sois vosotros, sobre vosotros, más información sobre vosotros, sois de fiar, sois legales.
+NOTA: frases como "y vosotros quién sois" o "quién sois vosotros" son preguntas sobre la empresa, aunque suenen confrontacionales. Clasifica SIEMPRE como CONFIANZA/EMPRESA, nunca como incidencia o queja.
 Respuesta: "Somos un desguace autorizado con muchos años de experiencia, trabajando con particulares y talleres de toda España. Conoce más sobre nosotros: [[SOBRE_NOSOTROS]]"
 
 **UBICACIÓN / VISITA**
 Señales: dónde estáis, puedo venir, ubicados, cómo llegar, dirección, recogerlo en persona, recogida, vuestras instalaciones, dónde os encuentro, dónde estás.
 Respuesta: "Aquí puedes ver dónde estamos: [[MAPS]]"
 
-**CONTACTO**
-Señales: teléfono, número de teléfono, cómo os contacto, contactar, email, correo, correo electrónico, dirección de email, escribiros, número de contacto, cómo os escribo, datos de contacto.
-Respuesta: "Puedes contactarnos por teléfono en [[TELEFONO]] o por email en [[EMAIL]]."
+**TELÉFONO DE CONTACTO**
+Señales: teléfono, número de teléfono, llamaros, llamar, número de contacto, tenéis teléfono, cómo os llamo, me dais un teléfono.
+Respuesta: "Puedes llamarnos al [[TELEFONO]]."
+
+**EMAIL DE CONTACTO**
+Señales: email, correo, correo electrónico, dirección de email, escribiros, escribir un correo, me dais un email, tenéis correo, cómo os escribo.
+Respuesta: "Puedes escribirnos a [[EMAIL]] y te respondemos lo antes posible."
 
 **HORARIO**
 Señales: horario, abierto, cerráis, hora de apertura, hora de cierre, días que abrís, festivos, fin de semana, cuándo abrís, estáis abiertos, horario de atención, a qué hora.
@@ -213,10 +218,10 @@ Sin campo pendiente:
 - "a qué hora abrís" → conversacion (HORARIO)
 - "los sábados abrís" → conversacion (HORARIO)
 - "estáis abiertos ahora" → conversacion (HORARIO)
-- "tenéis teléfono" → conversacion (CONTACTO)
-- "quiero llamaros" → conversacion (CONTACTO)
-- "cuál es vuestro correo" → conversacion (CONTACTO)
-- "cómo puedo contactar con vosotros" → conversacion (CONTACTO)
+- "tenéis teléfono" → conversacion (TELÉFONO DE CONTACTO)
+- "quiero llamaros" → conversacion (TELÉFONO DE CONTACTO)
+- "cuál es vuestro correo" → conversacion (EMAIL DE CONTACTO)
+- "me dais un email" → conversacion (EMAIL DE CONTACTO)
 - "dónde estáis" → conversacion (UBICACIÓN)
 - "cómo llego hasta vosotros" → conversacion (UBICACIÓN)
 - "quiero ir a recoger la pieza en persona" → conversacion (UBICACIÓN)
@@ -225,6 +230,8 @@ Sin campo pendiente:
 - "cuántos años lleváis" → conversacion (CONFIANZA)
 - "tenéis tienda física" → conversacion (CONFIANZA)
 - "quiero saber más sobre vosotros" → conversacion (CONFIANZA)
+- "y vosotros quien sois" → conversacion (CONFIANZA)
+- "quién sois vosotros" → conversacion (CONFIANZA)
 - "quiero vender mi coche" → conversacion (BAJAS Y TASACIONES)
 - "compráis coches para desguazar" → conversacion (BAJAS Y TASACIONES)
 - "cuánto me dais por mi coche" → conversacion (BAJAS Y TASACIONES)
