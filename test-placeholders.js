@@ -34,6 +34,11 @@ const TESTS = [
   { msg: "¿Cuánto me dais por mi coche?",          expect: "[[BAJAS_TASACIONES]]", bloque: "Bajas" },
   { msg: "Quiero vender mi coche para desguace",   expect: "[[BAJAS_TASACIONES]]", bloque: "Bajas" },
 
+  // --- CAMPA ---
+  { msg: "Quiero ver la campa",                    expect: "[[CAMPA]]",           bloque: "Campa" },
+  { msg: "¿Dónde está la campa?",                  expect: "[[CAMPA]]",           bloque: "Campa" },
+  { msg: "Acceso a la campa",                      expect: "[[CAMPA]]",           bloque: "Campa" },
+
   // --- SOBRE NOSOTROS ---
   { msg: "¿Quiénes sois?",                         expect: "[[SOBRE_NOSOTROS]]",  bloque: "Sobre nosotros" },
   { msg: "¿A qué os dedicáis?",                    expect: "[[SOBRE_NOSOTROS]]",  bloque: "Sobre nosotros" },

@@ -24,9 +24,10 @@ Evalúa SIEMPRE en este orden:
 El usuario menciona CUALQUIER dato relacionado con un vehículo o recambio, o responde directamente a una pregunta implícita del bot con datos.
 Incluye afirmaciones/negaciones cortas o palabras con faltas de ortografía.
 - Ejemplos: "un alternador", "para un seat ibiza", "del año 2005", "2010", "rojo", "el izquierdo", "parachoqe", "si, ese mismo", "no, me equivoqué".
-- REFERENCIAS OEM: son referencias de pieza y siempre van a "busqueda". Dos formatos posibles:
+- REFERENCIAS OEM: son referencias de pieza y siempre van a "busqueda". Formatos posibles:
   1. Alfanumérico (mezcla letras y números): "883100H010H", "1K0698151", "5Q0615301B", "036100098AX".
   2. Solo números de 7 o más dígitos: "8831000101", "1234567890". OJO: un número de exactamente 4 dígitos entre 1980 y el año actual es un AÑO, no una referencia (ej: "2013" → año).
+  3. Códigos de motor: "BKD" (motor diesel VW/Audi). Aunque no contiene números, siempre va a "busqueda".
 
 2. "ayuda"
 El usuario no sabe un dato concreto del vehículo (marca, modelo, año o versión) que el bot le estaba pidiendo en la búsqueda. Es una duda sobre un CAMPO DE DATOS DEL COCHE, no sobre temas comerciales.
@@ -68,6 +69,12 @@ Clasifica como "conversacion". Añade el campo especial "reset": true en el JSON
 - [[SOBRE_NOSOTROS]] → botón que abre la sección "Sobre nosotros" de su web
 - [[BAJAS_TASACIONES]] → botón que abre la sección de bajas y tasaciones de su web
 - [[HORARIO]] → horario de atención (texto inline)
+- [[CAMPA]] → botón que abre la sección de la campa
+
+**PRECIO DEL ENVÍO**
+Señales: cuánto cuesta el envío, precio del envío, precio con envío, coste del envío, qué precio tiene el envío, cuánto me sale con el envío, precio total con gastos de envío, gastos de envío incluidos, con portes, cuánto son los portes, precio con portes.
+NOTA: aplica solo cuando la pregunta mezcla precio Y envío. Una pregunta de envío sin precio (plazos, destinos) → ENVÍOS. Una pregunta de precio sin envío → PRECIO.
+Respuesta: "El precio final de tu pedido, gastos de envío incluidos, puedes verlo directamente en el carrito una vez que añadas los productos, tanto desde nuestra web como desde este mismo chat. Para cualquier duda: [[WHATSAPP]]"
 
 **PRECIO**
 Señales: precio, coste, cuánto cuesta, cuánto sale, rebajado, descuento, oferta, promoción, negociable, mejor precio, precio final, comprar varios, tarifa.
@@ -117,8 +124,12 @@ Señales: envío, envíos, tarda, llega, transporte, Canarias, Baleares, Ceuta, 
 Respuesta: "Sí, realizamos envíos a toda España y Portugal. El plazo habitual es de 24 a 72 horas laborables según destino. Para zonas especiales (Canarias, Baleares, Ceuta, Melilla) o envíos al extranjero, consúltanos: [[WHATSAPP]]"
 
 **PAGO**
-Señales: pagar, pago, tarjeta, Bizum, PayPal, reembolso, financiar, factura, IVA, seguro pagar.
-Respuesta: "Aceptamos los métodos de pago habituales: tarjeta, Bizum y transferencia. El precio mostrado ya incluye IVA. Para más opciones o si necesitas factura, consúltanos: [[WHATSAPP]]"
+Señales: pagar, pago, tarjeta, Bizum, PayPal, reembolso, financiar, seguro pagar, formas de pago, métodos de pago.
+Respuesta: "Aceptamos los métodos de pago habituales: tarjeta, Bizum y transferencia. El precio mostrado ya incluye IVA. Para más opciones o si tienes alguna duda, consúltanos: [[WHATSAPP]]"
+
+**FACTURA**
+Señales: factura, dais factura, proporcionáis factura, emitís factura, puedo pedir factura, necesito factura, recibo de compra, comprobante, factura con IVA, factura legal, ponéis IVA en la factura.
+Respuesta: "Sí, tras realizar tu compra te emitimos una factura legal con IVA incluido. Si necesitas algún dato específico en la factura, indícalo al formalizar el pedido."
 
 **CONFIANZA / EMPRESA**
 Señales: empresa real, tienda física, cuántos años lleváis, opiniones, autorizado, empresa legal, CIF, quiénes sois, vosotros quién sois, y vosotros quién sois, quién sois vosotros, sobre vosotros, más información sobre vosotros, sois de fiar, sois legales, a qué os dedicáis, qué hacéis, qué vendéis, a qué se dedican, de qué va esto, qué es esto.
@@ -146,6 +157,10 @@ Respuesta: "Nuestro horario de atención es [[HORARIO]]."
 Señales: vender mi coche, baja del coche, tasación, cuánto vale mi coche, me lo compráis, desguazar mi coche, quiero daros mi coche, tramitar baja, baja de vehículo, compráis coches, quiero vender el coche, cuánto me dais por mi coche, cuánto me pagáis por el coche, me compráis el coche, qué me dais por el coche.
 NOTA: cualquier pregunta sobre cuánto pagan por un vehículo o si compran coches es BAJAS Y TASACIONES, no búsqueda de piezas.
 Respuesta: "Sí, compramos vehículos para desguace y tramitamos bajas. Para solicitar una tasación sin compromiso: [[BAJAS_TASACIONES]]"
+
+**CAMPA**
+Señales (TIENEN PASE VIP - PRIORIDAD ABSOLUTA si se detecta "campa"): campa, ver la campa, ir a la campa, visitar la campa, dónde está la campa, acceder a la campa.
+Respuesta: "Aquí tienes el acceso a nuestra campa: [[CAMPA]]"
 
 **COMPARACIÓN ENTRE PIEZAS**
 Señales: mejor esta o esta otra, cuál recomiendas, qué diferencia hay, cuál está en mejor estado, cuál comprarías.
@@ -198,6 +213,8 @@ Sin campo pendiente:
 - "la referencia es 036100098AX" → busqueda
 - "8831000101" → busqueda  ← referencia OEM solo números (≥7 dígitos)
 - "0986479391" → busqueda  ← referencia OEM solo números
+- "BKD" → busqueda  ← código de motor diesel VW/Audi, tratado como referencia
+- "motor BKD" → busqueda  ← ídem
 - "2013" → busqueda  ← año (4 dígitos = año, NO referencia)
 - "hola busco un alternador" → busqueda
 - "renault cinco" → busqueda
@@ -215,7 +232,12 @@ Sin campo pendiente:
 - "cuando freno chirría" → conversacion (DIAGNÓSTICO POR SÍNTOMAS)
 - "necesito el radiador y la correa de distribución" → conversacion (BÚSQUEDA DE MÚLTIPLES PIEZAS)
 - "quiero hablar con alguien" → agente
-- "cuánto cuesta el envío" → conversacion (ENVÍOS)
+- "cuánto cuesta el envío" → conversacion (PRECIO DEL ENVÍO)
+- "precio con envío incluido" → conversacion (PRECIO DEL ENVÍO)
+- "cuánto son los portes" → conversacion (PRECIO DEL ENVÍO)
+- "dais factura" → conversacion (FACTURA)
+- "necesito una factura con IVA" → conversacion (FACTURA)
+- "hacéis envíos a Canarias" → conversacion (ENVÍOS)
 - "hasta qué hora estáis" → conversacion (HORARIO)
 - "a qué hora abrís" → conversacion (HORARIO)
 - "los sábados abrís" → conversacion (HORARIO)
@@ -306,7 +328,7 @@ ${contextoCampo}
 
 5. **CONCEPTOS COMPUESTOS Y POSICIONES**:
    - Extrae el artículo completo con su posición o lado ("faro delantero derecho", "portón trasero", "aleta delantera izquierda").
-   - **referencia**: códigos OEM de pieza. Dos formatos válidos: (1) alfanumérico con letras y números, mínimo 7 caracteres ("5Q0615301", "883100H010H"); (2) número puro de 7 o más dígitos ("8831000101"). Un número de exactamente 4 dígitos entre 1980 y el año actual es un AÑO, no una referencia. Códigos cortos de 6 o menos caracteres como "BQ1BE2" NO son referencias, son versiones de vehículo. NUNCA metas posiciones ni nombres de piezas aquí.
+   - **referencia**: códigos OEM de pieza. Formatos válidos: (1) alfanumérico con letras y números, mínimo 7 caracteres ("5Q0615301", "883100H010H"); (2) número puro de 7 o más dígitos ("8831000101"); (3) códigos de motor reconocidos, aunque sean cortos: "BKD" (motor diesel VW/Audi) → siempre va en "referencia". Un número de exactamente 4 dígitos entre 1980 y el año actual es un AÑO, no una referencia. Códigos cortos de 6 o menos caracteres como "BQ1BE2" NO son referencias (son versiones), salvo los códigos de motor listados. NUNCA metas posiciones ni nombres de piezas aquí.
 
 6. **IDIOMA**: Escribe SIEMPRE en español. NO traduzcas términos al inglés. Lo que no aparezca en la frase va a null.
 

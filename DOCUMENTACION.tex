@@ -1,0 +1,941 @@
+% ============================================================
+%  neto-backend -- Documentación Técnica (Backend + Frontend)
+%  Compilar en Overleaf con pdflatex
+% ============================================================
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage[left=2.5cm, right=2.5cm, top=3cm, bottom=3cm]{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{amssymb}
+\usepackage[hidelinks, pdftitle={Documentación Técnica -- neto-backend},
+            pdfauthor={Estudio Neto}]{hyperref}
+\usepackage{xurl}
+\usepackage{adjustbox}
+\usepackage{float}
+
+% ============================================================
+\definecolor{azulneto}{RGB}{30, 90, 180}
+\definecolor{azulclaro}{RGB}{220, 232, 250}
+\definecolor{grisclaro}{RGB}{248, 248, 248}
+\definecolor{grismedio}{RGB}{190, 190, 190}
+\definecolor{verdeclaro}{RGB}{210, 238, 210}
+\definecolor{verdeoscuro}{RGB}{35, 115, 35}
+\definecolor{rojoclaro}{RGB}{250, 220, 220}
+\definecolor{rojooscuro}{RGB}{160, 30, 30}
+\definecolor{naranjaclaro}{RGB}{255, 243, 210}
+\definecolor{naranjaoscuro}{RGB}{175, 95, 0}
+\definecolor{codebg}{RGB}{246, 246, 246}
+\definecolor{moradoclaro}{RGB}{235, 225, 250}
+\definecolor{moradooscuro}{RGB}{90, 40, 140}
+
+\lstdefinestyle{json}{
+    basicstyle=\ttfamily\footnotesize,
+    backgroundcolor=\color{codebg},
+    frame=single, framerule=0.5pt, rulecolor=\color{grismedio},
+    numbers=left, numberstyle=\tiny\color{gray}, numbersep=8pt,
+    breaklines=true, showstringspaces=false,
+    stringstyle=\color{rojooscuro},
+    commentstyle=\color{gray}\itshape,
+    tabsize=2, captionpos=b
+}
+\lstdefinestyle{bash}{
+    basicstyle=\ttfamily\footnotesize,
+    backgroundcolor=\color{gray!8},
+    frame=single, framerule=0.5pt, rulecolor=\color{grismedio},
+    breaklines=true, showstringspaces=false,
+    commentstyle=\color{gray}\itshape,
+    tabsize=2, captionpos=b
+}
+\lstdefinestyle{js}{
+    basicstyle=\ttfamily\footnotesize,
+    backgroundcolor=\color{codebg},
+    frame=single, framerule=0.5pt, rulecolor=\color{grismedio},
+    numbers=left, numberstyle=\tiny\color{gray}, numbersep=8pt,
+    breaklines=true, language=JavaScript,
+    keywordstyle=\color{azulneto}\bfseries,
+    stringstyle=\color{rojooscuro},
+    commentstyle=\color{gray}\itshape,
+    showstringspaces=false, tabsize=2, captionpos=b
+}
+\lstset{style=json}
+
+\tikzset{
+  nodo/.style={rectangle, rounded corners=5pt,
+    minimum width=2.8cm, minimum height=0.85cm,
+    text centered, font=\small\bfseries,
+    draw=azulneto, fill=azulclaro},
+  nodogris/.style={nodo, draw=grismedio, fill=grisclaro, text=black},
+  nodoverde/.style={nodo, draw=verdeoscuro, fill=verdeclaro, text=verdeoscuro},
+  nodorojo/.style={nodo, draw=rojooscuro, fill=rojoclaro, text=rojooscuro},
+  nodonaranja/.style={nodo, draw=naranjaoscuro, fill=naranjaclaro, text=naranjaoscuro},
+  nodomorado/.style={nodo, draw=moradooscuro, fill=moradoclaro, text=moradooscuro},
+  flecha/.style={-Stealth, thick, color=azulneto},
+  flechaverde/.style={-Stealth, thick, color=verdeoscuro},
+  flecharoja/.style={-Stealth, thick, color=rojooscuro},
+  flechagris/.style={-Stealth, thick, color=gray},
+}
+
+\newcommand{\capturapendiente}[1]{%
+  \begin{tcolorbox}[
+    colback=naranjaclaro, colframe=naranjaoscuro,
+    title={\small\bfseries\color{naranjaoscuro} Captura de pantalla pendiente},
+    fontupper=\small\color{gray},
+    left=6pt, right=6pt, top=4pt, bottom=4pt, width=\linewidth
+  ]
+  \centering{\Large $\square$}\\[4pt]#1
+  \end{tcolorbox}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{gray} neto-backend \textbullet{} Documentación Técnica}
+\fancyhead[R]{\small\color{gray} Junio 2026}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}
+  {\Large\bfseries\color{azulneto}}{\thesection.}{0.5em}{}
+  [\vspace{-2pt}\textcolor{grismedio}{\hrule height 0.8pt}\vspace{2pt}]
+\titleformat{\subsection}
+  {\large\bfseries\color{azulneto!80}}{\thesubsection.}{0.5em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries}{\thesubsubsection.}{0.5em}{}
+
+% ============================================================
+\begin{document}
+
+% ---- PORTADA -----------------------------------------------
+\begin{titlepage}
+\centering
+\vspace*{3.5cm}
+
+{\color{azulneto}\rule{\linewidth}{1.5pt}}\\[0.6em]
+{\Huge\bfseries\color{azulneto} Documentación Técnica}\\[0.5em]
+{\large\color{gray} Chatbot Desguace \textbullet{} Backend + Plugin WordPress}\\[0.4em]
+{\color{azulneto}\rule{\linewidth}{1.5pt}}
+
+\vspace{3.5cm}
+\begin{tabular}{rl}
+  \textbf{Proyecto:} & neto-backend \\[0.5em]
+  \textbf{Versión:}  & 1.0 \\[0.5em]
+  \textbf{Fecha:}    & Junio 2026 \\[0.5em]
+  \textbf{Autor:}    & Estudio Neto \\
+\end{tabular}
+
+\vspace{3.5cm}
+\begin{minipage}{0.78\linewidth}
+\begin{tcolorbox}[colback=grisclaro, colframe=grismedio, fontupper=\small]
+  \centering
+  Referencia técnica del chatbot para desguaces: arquitectura del sistema,
+  API del backend, proceso de alta de nuevos clientes e integración del plugin WordPress.
+\end{tcolorbox}
+\end{minipage}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{¿Qué es este sistema?}
+% ============================================================
+
+neto-backend es el servidor Node.js que procesa los mensajes del chatbot para desguaces de vehículos. Su función principal es:
+
+\begin{itemize}[noitemsep]
+  \item Entender lenguaje natural y extraer datos estructurados (pieza, marca, modelo, año, referencia OEM).
+  \item Consultar el catálogo de piezas del desguace a través de su API.
+  \item Devolver los resultados al frontend en formato JSON.
+\end{itemize}
+
+No almacena datos de usuarios ni tiene base de datos propia: es un intermediario entre el chat y la API del catálogo del desguace.
+
+\begin{figure}[h]
+\centering
+\adjustbox{max width=\linewidth}{%
+\begin{tikzpicture}[node distance=2.4cm]
+  \node[nodogris] (user) {Usuario};
+  \node[nodo, right=of user]  (front) {Frontend\\WordPress};
+  \node[nodo, right=of front] (back)  {neto-backend};
+  \node[nodogris, right=of back] (api) {API Catálogo};
+  \draw[flecha,<->] (user)  -- node[above]{\tiny chat}      (front);
+  \draw[flecha,<->] (front) -- node[above]{\tiny HTTP/JSON} (back);
+  \draw[flecha,<->] (back)  -- node[above]{\tiny piezas}    (api);
+\end{tikzpicture}%
+}
+\caption{Posición del backend en el sistema}
+\end{figure}
+
+% ============================================================
+\section{Arquitectura general}
+% ============================================================
+
+\begin{figure}[h]
+\centering
+\adjustbox{max width=\linewidth}{%
+\begin{tikzpicture}[node distance=1.5cm and 2.6cm]
+  \node[nodogris, minimum width=3cm] (user)  {Usuario};
+  \node[nodo, minimum width=3.8cm, right=of user] (front) {Frontend\\WordPress / Web};
+  \node[nodo, minimum width=4.2cm, minimum height=1.2cm,
+        font=\normalsize\bfseries, below=2cm of front] (back) {neto-backend\\{\small Node.js}};
+  \node[nodoverde, minimum width=3.3cm,
+        below left=1.5cm and 0.3cm of back]  (ia)  {vLLM RunPod\\{\tiny Qwen 2.5 14B}};
+  \node[nodogris, minimum width=3.3cm,
+        below right=1.5cm and 0.3cm of back] (api) {API Catálogo\\{\tiny piezas}};
+  \draw[flecha,<->] (user)  -- node[above]{\tiny chat}      (front);
+  \draw[flecha,<->] (front) -- node[right]{\tiny HTTP/JSON} (back);
+  \draw[flecha,<->] (back)  -- (ia);
+  \draw[flecha,<->] (back)  -- (api);
+  \node[font=\tiny\itshape\color{gray}, below=2pt of ia] {(GPU externa, de pago)};
+\end{tikzpicture}%
+}
+\caption{Arquitectura completa del sistema}
+\end{figure}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{>{\bfseries}lX}
+\toprule
+Componente & Descripción \\
+\midrule
+Router         & Clasifica la intención del usuario (busqueda / conversacion / ayuda / agente) \\
+Extractor      & Extrae los campos estructurados del mensaje (artículo, marca, modelo\ldots) \\
+Aduana         & Valida y corrige los datos contra los diccionarios reales \\
+Contexto       & Fusiona los datos nuevos con los del turno anterior \\
+Validador      & Comprueba que la combinación marca+modelo existe \\
+Dialog         & Decide si preguntar más datos o lanzar la búsqueda \\
+API Repository & Consulta el catálogo con reintentos y circuit breaker \\
+Caché LRU      & Guarda resultados en memoria (TTL 10 min, máx 500 entradas) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ============================================================
+\section{Cómo funciona el chatbot}
+% ============================================================
+
+\subsection{Cascada de campos}
+
+Los cuatro primeros campos son \textbf{obligatorios}; la versión es opcional. Como alternativa, una \textbf{referencia OEM} salta toda la cascada y va directo al catálogo.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=0.65cm]
+  \node[nodo, minimum width=5.2cm]               (art) {1.\ Artículo (pieza)};
+  \node[nodo, minimum width=4.8cm, below=of art]  (mar) {2.\ Marca del vehículo};
+  \node[nodo, minimum width=4.4cm, below=of mar]  (mod) {3.\ Modelo};
+  \node[nodo, minimum width=4cm,   below=of mod]  (ano) {4.\ Año};
+  \node[nodonaranja, minimum width=3.6cm, below=of ano] (ver) {5.\ Versión \textit{(opcional)}};
+  \node[nodoverde, minimum width=5.2cm, below=0.8cm of ver] (res) {Búsqueda en catálogo};
+
+  \draw[flecha] (art) -- (mar);
+  \draw[flecha] (mar) -- (mod);
+  \draw[flecha] (mod) -- (ano);
+  \draw[flecha] (ano) -- (ver);
+  \draw[flechaverde] (ver) -- (res);
+  \node[font=\tiny\itshape\color{gray}, right=4pt of ver] {se puede omitir};
+
+  \node[nodogris, minimum width=4.6cm, right=2.8cm of mod] (oem)
+      {Referencia OEM\\{\tiny ej: \texttt{1K0698151}}};
+  \node[font=\tiny\itshape\color{gray}, above=0.12cm of oem] {acceso directo (sin cascada)};
+  \draw[-Stealth, dashed, thick, color=gray] (oem.south) to[out=270, in=0] (res.east);
+\end{tikzpicture}
+\caption{Cascada de campos (obligatorios en azul, opcional en naranja) y acceso OEM directo}
+\end{figure}
+
+\textbf{Ejemplo — cascada de 4 turnos:}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{cXX}
+\toprule
+\textbf{Turno} & \textbf{Usuario} & \textbf{Bot} \\
+\midrule
+1 & ``Necesito un alternador'' & Extrae artículo. Falta marca → pregunta \\
+2 & ``Ford'' & Extrae marca. Falta modelo → pregunta \\
+3 & ``Focus'' & Extrae modelo. Falta año → pregunta \\
+4 & ``2010'' & Extrae año. Cascada completa → busca → devuelve piezas \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Ejemplo — referencia OEM (1 turno):} el usuario escribe \texttt{1K0698151} y el bot busca directamente, sin preguntar nada.
+
+\subsection{Flujo técnico de una petición}
+
+\begin{figure}[h]
+\centering
+\adjustbox{max width=\linewidth}{%
+\begin{tikzpicture}[node distance=0.5cm and 0.9cm]
+  \node[nodo, minimum width=1.8cm] (ent) {Entrada};
+  \node[nodo, minimum width=1.8cm, right=of ent] (rou) {Router};
+  \node[nodo, minimum width=1.8cm, right=of rou] (ext) {Extractor};
+  \node[nodo, minimum width=1.8cm, right=of ext] (adu) {Aduana};
+  \node[nodo, minimum width=1.8cm, right=of adu] (ctx) {Contexto};
+  \node[nodo,     minimum width=1.8cm, below=1.2cm of adu] (val)  {Validador};
+  \node[nodo,     minimum width=1.8cm, left=of val]         (dial) {Dialog};
+  \node[nodo,     minimum width=1.8cm, left=of dial]        (apir) {API};
+  \node[nodoverde,minimum width=2.2cm, left=of apir]        (resp) {Respuesta};
+  \draw[flecha] (ent) -- (rou);
+  \draw[flecha] (rou) -- (ext);
+  \draw[flecha] (ext) -- (adu);
+  \draw[flecha] (adu) -- (ctx);
+  \draw[flecha] (ctx.south) -- ++(0,-0.55) -| (val.north);
+  \draw[flecha] (val) -- (dial);
+  \draw[flecha] (dial) -- (apir);
+  \draw[flecha] (apir) -- (resp);
+\end{tikzpicture}%
+}
+\caption{Pipeline de procesamiento}
+\end{figure}
+
+Cada petición sigue siempre este orden:
+\begin{enumerate}[noitemsep]
+  \item \textbf{Middlewares:} CORS → API key → rate limit (100 req/min) → validación del body.
+  \item \textbf{OEM directo:} si es referencia OEM, salta al paso 7.
+  \item \textbf{Router:} la IA clasifica la intención (\texttt{busqueda / conversacion / ayuda / agente}).
+  \item \textbf{Extractor:} extrae campos estructurados (artículo, marca, modelo, año, versión).
+  \item \textbf{Aduana:} valida contra diccionarios y corrige sinónimos y errores (ej: ``airvak'' → ``airbag'').
+  \item \textbf{Contexto + Validador:} fusiona con turno anterior; comprueba que marca/modelo existen.
+  \item \textbf{Dialog → API → Caché:} si faltan datos pregunta; si están completos busca y formatea.
+\end{enumerate}
+
+% ============================================================
+\section{Los dos motores del bot}
+% ============================================================
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+  \node[nodo, minimum width=5.6cm, minimum height=0.9cm,
+        font=\normalsize\bfseries] (pt) {Motor PREMIUM};
+  \node[align=left, font=\small, text width=5.4cm, below=0.15cm of pt] (pb) {%
+    \textcolor{verdeoscuro}{\checkmark} Qwen 2.5 14B (RunPod)\\
+    \textcolor{verdeoscuro}{\checkmark} Entiende lenguaje natural complejo\\
+    \textcolor{verdeoscuro}{\checkmark} Soporta base de conocimiento comercial\\
+    \textcolor{rojooscuro}{$\times$} Requiere internet (RunPod)\\
+    \textcolor{gray}{\small Respuesta: 1--4 segundos}
+  };
+  \begin{pgfonlayer}{background}
+    \node[draw=azulneto, fill=azulclaro!40, rounded corners=8pt,
+          fit=(pt)(pb), inner sep=8pt] (pbox) {};
+  \end{pgfonlayer}
+  \node[nodogris, minimum width=5.6cm, minimum height=0.9cm,
+        font=\normalsize\bfseries, right=2.4cm of pt] (ft) {Motor FREE};
+  \node[align=left, font=\small, text width=5.4cm, below=0.15cm of ft] (fb) {%
+    \textcolor{verdeoscuro}{\checkmark} node-nlp local (sin internet)\\
+    \textcolor{verdeoscuro}{\checkmark} Respuesta $<$100ms\\
+    \textcolor{verdeoscuro}{\checkmark} Fallback automático si PREMIUM falla\\
+    \textcolor{rojooscuro}{$\times$} Sin base de conocimiento comercial\\
+    \textcolor{gray}{\small Se activa automáticamente}
+  };
+  \begin{pgfonlayer}{background}
+    \node[draw=grismedio, fill=grisclaro, rounded corners=8pt,
+          fit=(ft)(fb), inner sep=8pt] (fbox) {};
+  \end{pgfonlayer}
+  \draw[-Stealth, dashed, thick, color=naranjaoscuro]
+    (pbox.east) -- node[above, font=\small\color{naranjaoscuro}]{fallback auto} (fbox.west);
+\end{tikzpicture}
+\caption{Los dos motores. Si PREMIUM falla, el sistema cae automáticamente a FREE sin que el usuario lo note.}
+\end{figure}
+
+% ============================================================
+\section{Base de conocimiento comercial}
+% ============================================================
+
+El bot tiene respuestas predefinidas para las preguntas comerciales más habituales. Estas respuestas se configuran en \texttt{src/config/prompts.js} y no requieren conexión a ningún sistema externo.
+
+\begin{figure}[H]
+\centering
+\adjustbox{max width=\linewidth}{\includegraphics{img_chat_comercial.png}}
+\caption{Chat respondiendo una pregunta comercial}
+\end{figure}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Tema} & \textbf{Ejemplo de pregunta} \\
+\midrule
+Precio           & ``¿Cuánto cuesta?'' / ``¿Hay descuento?'' \\
+Compatibilidad   & ``¿Esta pieza vale para mi coche?'' \\
+Garantía         & ``¿Incluye garantía?'' \\
+Devoluciones     & ``Quiero devolver la pieza'' / ``no me encaja'' \\
+Envíos           & ``¿Hacéis envíos a Canarias?'' \\
+Pago             & ``¿Aceptáis Bizum?'' \\
+Horario          & ``¿A qué hora abrís?'' \\
+Teléfono         & ``¿Tenéis teléfono?'' \\
+Email            & ``¿Cuál es vuestro correo?'' \\
+Ubicación        & ``¿Dónde estáis?'' \\
+Sobre nosotros   & ``¿Quiénes sois?'' \\
+Bajas y tasaciones & ``¿Compráis coches?'' / ``¿Cuánto me dais?'' \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ============================================================
+\section{Placeholders del chat}
+% ============================================================
+
+El backend envía etiquetas especiales que el \textbf{frontend debe sustituir} antes de mostrar el texto al usuario:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Placeholder} & \textbf{Render} & \textbf{Dato (WordPress)} \\
+\midrule
+\texttt{[[WHATSAPP]]}          & Botón → abre WhatsApp            & \texttt{whatsapp\_url} \\
+\texttt{[[TELEFONO]]}          & Enlace \texttt{tel:} clicable    & \texttt{telefono} \\
+\texttt{[[EMAIL]]}             & Enlace \texttt{mailto:} clicable & \texttt{email} \\
+\texttt{[[HORARIO]]}           & Texto plano                      & \texttt{horario} \\
+\texttt{[[MAPS]]}              & Botón → abre Google Maps         & \texttt{maps\_url} \\
+\texttt{[[SOBRE\_NOSOTROS]]}   & Botón → abre URL                 & \texttt{sobre\_nosotros\_url} \\
+\texttt{[[BAJAS\_TASACIONES]]} & Botón → abre URL                 & \texttt{bajas\_tasaciones\_url} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{tcolorbox}[colback=rojoclaro, colframe=rojooscuro, fontupper=\small]
+  Si un dato no está configurado en WordPress, el frontend debe \textbf{eliminar} la frase que contiene el placeholder — nunca mostrar el texto \texttt{[[PLACEHOLDER]]} al usuario.
+\end{tcolorbox}
+
+\begin{figure}[H]
+\centering
+\adjustbox{max width=\linewidth}{\includegraphics{img_chat_botones.png}}
+\caption{Chat con placeholders renderizados como botones reales (WhatsApp, Maps, teléfono clicable, etc.)}
+\end{figure}
+
+% ============================================================
+\section{API del backend}
+% ============================================================
+
+\subsection{POST /api/chat}
+
+\textbf{Headers:}
+\begin{lstlisting}[style=bash]
+Content-Type: application/json
+Origin: https://dominio-del-cliente.com
+api-key: clave-secreta-del-cliente
+\end{lstlisting}
+
+\textbf{Body:}
+\begin{lstlisting}[style=json]
+{
+  "message": "necesito un alternador para un ford focus 2010",
+  "contexto": ""
+}
+\end{lstlisting}
+
+\begin{tcolorbox}[colback=azulclaro!30, colframe=azulneto, fontupper=\small]
+  \textbf{contexto} es el valor de \texttt{nuevoContexto} de la respuesta anterior. En el primer mensaje puede ser \texttt{\textquotedbl\textquotedbl}.
+\end{tcolorbox}
+
+\textbf{Respuesta (200):}
+\begin{lstlisting}[style=json]
+{
+  "respuesta":      "He encontrado 3 opciones...",
+  "piezas":         [{ "id": 12345, "titulo": "ALTERNADOR FORD FOCUS",
+                       "precio": "85.50EUR", "imagen": "https://...",
+                       "url": "https://desguace.com/recambios/12345/" }],
+  "sugerencias":      [],
+  "campoFaltante":    null,
+  "pedirSugerencias": false,
+  "pedirWhatsapp":    false,
+  "nuevoContexto":  "{\"articulo\":\"alternador\",\"marca\":\"ford\",...}",
+  "metadata":       { "totalReal": 3, "queryLimpia": "alternador ford focus 2010" }
+}
+\end{lstlisting}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Campo} & \textbf{Tipo} & \textbf{Uso en frontend} \\
+\midrule
+\texttt{respuesta}        & string      & Texto del bot (puede tener placeholders — sustituir antes de mostrar) \\
+\texttt{piezas}           & array       & Tarjetas de pieza. Vacío si no hay resultados \\
+\texttt{sugerencias}      & array       & Opciones para el usuario si no sabe un dato \\
+\texttt{pedirSugerencias} & boolean     & Si \texttt{true}, mostrar \texttt{sugerencias} como botones seleccionables \\
+\texttt{pedirWhatsapp}    & boolean     & Si \texttt{true}, mostrar botón WhatsApp aunque no haya \texttt{[[WHATSAPP]]} en el texto \\
+\texttt{campoFaltante}    & string|null & Campo que falta (útil para el placeholder del input) \\
+\texttt{nuevoContexto}    & string      & \textbf{Guardar y enviar como \texttt{contexto} en el próximo mensaje} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{GET /api/health}
+
+Sin autenticación. Devuelve \verb|{"estado":"OK",...}| o \verb|{"estado":"DEGRADADO",...}| si la API del catálogo no responde.
+
+\subsection{POST /api/chat/cache/flush}
+
+Header \texttt{x-cache-key: <ADMIN\_CACHE\_KEY>}. Vacía la caché. Útil cuando el cliente actualiza su catálogo.
+
+% ============================================================
+\section{Seguridad}
+% ============================================================
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=1.5cm and 2cm]
+  \node[nodoverde, minimum width=3.5cm] (ok)    {Origen autorizado\\{\tiny en clientes.js}};
+  \node[nodo,      minimum width=3cm, right=2.5cm of ok]  (back)  {neto-backend};
+  \draw[flechaverde] (ok) -- node[above]{\small\checkmark\ acepta} (back);
+  \node[nodorojo, minimum width=3.5cm, below=1.4cm of ok] (bad)   {Origen desconocido};
+  \node[nodorojo, minimum width=3cm, right=2.5cm of bad]  (block) {Error CORS\\{\tiny 403}};
+  \draw[flecharoja] (bad) -- node[above]{\small$\times$\ rechaza} (block);
+\end{tikzpicture}
+\caption{CORS dinámico: solo los dominios registrados en clientes.js pueden conectarse}
+\end{figure}
+
+\begin{itemize}[noitemsep]
+  \item \textbf{CORS dinámico:} solo dominios en \texttt{clientes.js} pueden conectarse.
+  \item \textbf{API key por cliente:} header \texttt{api-key} obligatorio. Error 403 si no coincide.
+  \item \textbf{Rate limiting:} 100 peticiones/minuto por IP. Error 429 si se supera.
+  \item \textbf{Validación de entrada:} mensaje 1--400 chars, contexto máx. 500 chars. Error 400 si falla.
+\end{itemize}
+
+% ============================================================
+\section{Infraestructura}
+% ============================================================
+
+\begin{figure}[h]
+\centering
+\adjustbox{max width=\linewidth}{%
+\begin{tikzpicture}[node distance=1.4cm and 2cm]
+  \node[nodo, minimum width=3cm] (pm2)  {PM2};
+  \node[nodo, minimum width=3cm, right=1.5cm of pm2] (node) {Node.js\\:4000};
+  \draw[flecha,<->] (pm2) -- node[above]{\tiny gestiona} (node);
+  \node[nodoverde, minimum width=3.2cm, above right=1.3cm and 1cm of node] (runpod) {RunPod\\{\tiny vLLM GPU}};
+  \node[nodogris,  minimum width=3.2cm, below right=1.3cm and 1cm of node] (api)    {API Catálogo};
+  \draw[flecha,<->] (node) -- node[above right, font=\tiny]{HTTPS} (runpod);
+  \draw[flecha,<->] (node) -- node[below right, font=\tiny]{HTTPS} (api);
+  \node[nodogris, minimum width=3cm, left=2cm of pm2] (front) {Frontend\\WordPress};
+  \draw[flecha,<->] (front) -- node[above]{\tiny HTTP/JSON} (pm2);
+  \begin{pgfonlayer}{background}
+    \node[draw=azulneto, dashed, rounded corners=6pt,
+          fit=(pm2)(node), inner sep=10pt,
+          label=above:{\small\textbf{VPS Linux (Ubuntu)}}] {};
+  \end{pgfonlayer}
+\end{tikzpicture}%
+}
+\caption{Infraestructura del servidor}
+\end{figure}
+
+El modelo Qwen 2.5 14B corre en RunPod (GPU externa). Si cae, el sistema hace fallback a FREE automáticamente. La caché LRU guarda hasta 500 consultas con TTL de 10 minutos; se vacía al reiniciar el servidor.
+
+\textbf{Circuit Breaker:} si la API del catálogo falla 5 veces seguidas, el circuito se abre 60 segundos (todas las peticiones se rechazan al instante). Pasado ese tiempo, prueba si la API volvió.
+
+% ============================================================
+\section{Cómo añadir un nuevo cliente}
+% ============================================================
+
+\begin{figure}[h]
+\centering
+\adjustbox{max width=\linewidth}{%
+\begin{tikzpicture}[node distance=0.6cm and 1.5cm]
+  \node[nodo, minimum width=3.5cm, minimum height=1.1cm] (p1) {Paso 1\\{\small Backend: registrar}};
+  \node[nodo, minimum width=3.5cm, minimum height=1.1cm, right=of p1] (p2) {Paso 2\\{\small WP: instalar plugin}};
+  \node[nodoverde, minimum width=3.5cm, minimum height=1.1cm, right=of p2] (p3) {Paso 3\\{\small Plugin: configurar}};
+  \draw[flecha] (p1) -- (p2);
+  \draw[flecha] (p2) -- (p3);
+  \node[font=\tiny, below=3pt of p1] {(backend)};
+  \node[font=\tiny, below=3pt of p2] {(frontend)};
+  \node[font=\tiny, below=3pt of p3] {(frontend)};
+\end{tikzpicture}%
+}
+\caption{Proceso de alta de un nuevo cliente}
+\end{figure}
+
+\subsection{Paso 1 --- Registrar en el backend}
+
+Añadir en \texttt{src/config/clientes.js}:
+
+\begin{lstlisting}[style=js]
+"https://dominio-nuevo-cliente.com": {
+  id:            "cliente_002",
+  storeUrl:      "https://dominio-nuevo-cliente.com",
+  backendApiKey: "clave-secreta-unica",   // minimo 8 chars, unica por cliente
+},
+\end{lstlisting}
+
+Después: \texttt{pm2 restart neto-backend}
+
+\subsection{Paso 2 --- Instalar el plugin en WordPress}
+
+Desde el panel de administración de WordPress: \textbf{Plugins → Añadir nuevo → Subir plugin}. Seleccionar el archivo \texttt{.zip} del plugin del chat, instalarlo y activarlo. Una vez activo, aparecerá una nueva entrada en el menú lateral de WordPress para su configuración.
+
+\subsection{Paso 3 --- Configurar los datos del cliente}
+
+En el panel del plugin rellenar:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Campo} & \textbf{Ejemplo} & \textbf{Descripción} \\
+\midrule
+\texttt{whatsapp\_url}         & \texttt{https://wa.me/34612345678} & URL de WhatsApp Business \\
+\texttt{telefono}              & \texttt{612 345 678}               & Número de teléfono \\
+\texttt{email}                 & \texttt{info@desguace.com}         & Email de contacto \\
+\texttt{horario}               & \texttt{Lun--Vie 9:00--18:00}     & Horario de atención \\
+\texttt{maps\_url}             & URL de Google Maps                 & Ubicación en Maps \\
+\texttt{sobre\_nosotros\_url}  & URL de la web                      & Página ``Sobre nosotros'' \\
+\texttt{bajas\_tasaciones\_url} & URL de la web                     & Página de bajas \\
+\texttt{api\_key}              & \texttt{clave-secreta-unica}       & La \texttt{backendApiKey} del Paso 1 \\
+\texttt{backend\_url}          & \texttt{https://servidor.com:4000} & URL del backend \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{figure}[H]
+\centering
+\adjustbox{max width=\linewidth}{\includegraphics{img_plugin_config.png}}
+\caption{Formulario de configuración del plugin en WordPress}
+\end{figure}
+
+\subsection{Checklist de alta}
+
+\begin{tcolorbox}[colback=verdeclaro!50, colframe=verdeoscuro,
+                  title={\small\bfseries Lista de verificación}]
+\begin{itemize}[label=$\square$, noitemsep]
+  \item Dominio añadido en \texttt{clientes.js} + \texttt{pm2 restart}
+  \item Plugin instalado y activo en WordPress
+  \item Todos los datos de contacto configurados en el plugin
+  \item \texttt{api\_key} y \texttt{backend\_url} configurados en el plugin
+  \item Prueba de búsqueda básica superada (4 turnos hasta ver piezas)
+  \item Prueba de contacto superada (teléfono, email, horario, maps, WhatsApp)
+\end{itemize}
+\end{tcolorbox}
+
+% ============================================================
+\section{Variables de entorno}
+% ============================================================
+
+Archivo \texttt{.env} en la raíz. \textbf{No subir al repositorio} (está en \texttt{.gitignore}).
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Variable} & \textbf{Defecto} & \textbf{Descripción} \\
+\midrule
+\texttt{PORT}                    & \texttt{4000}    & Puerto del servidor \\
+\texttt{LOG\_LEVEL}              & \texttt{info}    & Nivel de log: \texttt{debug / info / warn / error} \\
+\texttt{MODO\_BOT}               & \texttt{PREMIUM} & \texttt{PREMIUM} = vLLM Qwen \quad \texttt{FREE} = NLP local \\
+\texttt{RUNPOD\_IA\_URL}         & ---              & Endpoint vLLM en RunPod \\
+\texttt{RUNPOD\_IA\_TOKEN}       & ---              & Token RunPod \\
+\texttt{RUNPOD\_IA\_MODEL}       & ---              & Ej: \texttt{Qwen/Qwen2.5-14B-Instruct-AWQ} \\
+\texttt{RUNPOD\_AI\_TEMPERATURE} & \texttt{0.2}     & Creatividad (0 = determinista) \\
+\texttt{RUNPOD\_AI\_MAX\_TOKENS} & \texttt{400}     & Tokens máximos por respuesta \\
+\texttt{API\_TIMEOUT\_MS}        & \texttt{10000}   & Timeout API catálogo (ms) \\
+\texttt{CB\_Umbral}              & \texttt{5}       & Fallos para abrir el circuit breaker \\
+\texttt{CB\_Reset}               & \texttt{60000}   & ms que el circuit breaker permanece abierto \\
+\texttt{limit}                   & \texttt{100}     & Peticiones/minuto por IP \\
+\texttt{CACHE\_TTL\_SECONDS}     & \texttt{600}     & TTL de caché (10 min) \\
+\texttt{ADMIN\_CACHE\_KEY}       & ---              & Clave para vaciar caché vía API \\
+\texttt{LIMITE\_GENERICO}        & \texttt{500}     & Si la búsqueda supera N resultados, se considera demasiado genérica \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ============================================================
+\section{Mantenimiento}
+% ============================================================
+
+\subsection{Comandos PM2}
+
+\begin{lstlisting}[style=bash]
+pm2 list                         # ver estado
+pm2 logs neto-backend            # logs en tiempo real
+pm2 logs neto-backend --lines 100
+pm2 restart neto-backend         # necesario tras cambiar .env o clientes.js
+pm2 stop / start neto-backend
+\end{lstlisting}
+
+\subsection{Señales de alerta en logs}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\ttfamily\footnotesize\raggedright\arraybackslash}p{5.8cm} >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Mensaje en log} & \textbf{Causa y acción} \\
+\midrule
+Fallback a modo FREE            & RunPod no respondió → comprobar estado del pod en RunPod \\
+CIRCUITO ACTIVADO!              & API del catálogo falló 5 veces seguidas → comprobar la web del cliente \\
+Has superado el limite          & Alguien hace spam → investigar si es continuo \\
+Contexto inválido               & Frontend envía datos mal formados → revisar la integración \\
+No se pudo parsear contexto     & Frontend no envía \normalfont\texttt{nuevoContexto} correctamente → revisar la llamada \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Para vaciar la caché manualmente: \quad \verb|curl -X POST .../api/chat/cache/flush -H "x-cache-key: TU_KEY"|
+
+% ============================================================
+\section{Resolución de problemas}
+% ============================================================
+
+\begin{tcolorbox}[colback=rojoclaro!50, colframe=rojooscuro, fontupper=\small,
+                  title={\bfseries El bot responde en modo FREE (respuestas genéricas)}]
+RunPod caído o token expirado. Buscar \texttt{Fallback a modo FREE} en logs → verificar RunPod → comprobar \texttt{.env} → \texttt{pm2 restart}.
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=rojoclaro!50, colframe=rojooscuro, fontupper=\small,
+                  title={\bfseries El chat no responde (error CORS en consola del navegador)}]
+Dominio no registrado en \texttt{clientes.js}. Añadirlo con \texttt{https://} y sin barra final → \texttt{pm2 restart}.
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=rojoclaro!50, colframe=rojooscuro, fontupper=\small,
+                  title={\bfseries El bot busca piezas ante preguntas comerciales}]
+Motor FREE activo (no tiene base de conocimiento). Verificar \texttt{MODO\_BOT=PREMIUM} en \texttt{.env} y que RunPod está activo.
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=rojoclaro!50, colframe=rojooscuro, fontupper=\small,
+                  title={\bfseries Los resultados de búsqueda están desactualizados}]
+Catálogo actualizado pero respuestas en caché. Vaciar caché (ver sección 12).
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=rojoclaro!50, colframe=rojooscuro, fontupper=\small,
+                  title={\bfseries El bot pide datos que el usuario ya dio}]
+El frontend no envía \texttt{nuevoContexto} en la siguiente petición. Verificar que se guarda y se reenvía como \texttt{contexto}.
+\end{tcolorbox}
+
+% ============================================================
+%  ██████████████████████████████████████████████████████████
+%  SECCIÓN FRONTEND
+%  ██████████████████████████████████████████████████████████
+% ============================================================
+
+\newpage
+\begin{tcolorbox}[colback=moradoclaro, colframe=moradooscuro, fontupper=\normalsize\bfseries,
+                  title={\large\bfseries\color{moradooscuro} Sección del equipo Frontend}]
+Las secciones siguientes documentan el plugin WordPress y la integración del widget de chat,
+redactadas por el equipo de frontend.
+\end{tcolorbox}
+
+% ============================================================
+\section{Integración del chat en el frontend}
+% ============================================================
+
+\subsection{Arquitectura del plugin WordPress}
+
+El chat se distribuye como plugin WordPress (\texttt{neto-floating-widget.php}).
+Al cargar la página, el plugin:
+
+\begin{enumerate}[noitemsep]
+  \item Registra y encola el bundle React compilado con Vite (\texttt{build/assets/*.js}).
+  \item Usa \texttt{wp\_localize\_script()} para inyectar la configuración del cliente como objeto global:
+\begin{lstlisting}[style=js]
+window.ChatBotConfig = {
+  backendUrl:       "https://...",
+  backendApiKey:    "...",
+  whatsappNumber:   "34612345678",   // numero sin espacios ni +
+  telefono:         "961 318 659",
+  email:            "info@desguace.com",
+  horario:          "Lun-Vie 9:00-18:00 | Sab 9:00-14:00",
+  mapsUrl:          "https://maps.google.com/?q=...",
+  sobreNosotrosUrl: "https://desguace.com/sobre-nosotros",
+  bajasUrl:         "https://desguace.com/bajas-y-tasaciones",
+  // ... colores y textos del tema
+};
+\end{lstlisting}
+  \item Añade \texttt{<div id="neto-floating-widget-root">} en el footer donde React monta el widget.
+\end{enumerate}
+
+El widget está construido con \textbf{React 18} + \textbf{react-chatbotify}. La sustitución de placeholders se realiza mediante un \texttt{MutationObserver} (\texttt{useChatDOMInjector.jsx}) que detecta nuevas burbujas del bot y les inyecta componentes React (botones, tarjetas) o HTML directo (enlaces \texttt{tel:}/\texttt{mailto:}).
+
+\subsection{Llamada a la API}
+
+\begin{lstlisting}[style=js, caption={Función básica de llamada al backend}]
+async function enviarMensaje(mensaje, contexto = "") {
+  const respuesta = await fetch("https://TU_SERVIDOR:4000/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Origin":  window.location.origin,
+      "api-key": "TU_BACKEND_API_KEY"   // configurada en el plugin
+    },
+    body: JSON.stringify({ message: mensaje, contexto })
+  });
+  if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+  return await respuesta.json();
+}
+\end{lstlisting}
+
+\subsection{Gestión del contexto entre turnos}
+
+El campo \texttt{nuevoContexto} de cada respuesta debe guardarse y enviarse como \texttt{contexto} en la siguiente petición. Sin esto el bot olvida lo que el usuario dijo antes.
+
+\begin{lstlisting}[style=js, caption={Gestión del contexto conversacional}]
+// El contexto se persiste en localStorage para sobrevivir recargas de página
+const CONTEXT_KEY = "neto_chat_contexto";
+
+async function chat(mensajeUsuario) {
+  const contexto = localStorage.getItem(CONTEXT_KEY) ?? "";
+  const datos = await enviarMensaje(mensajeUsuario, contexto);
+  localStorage.setItem(CONTEXT_KEY, datos.nuevoContexto ?? "");
+  return datos;
+}
+\end{lstlisting}
+
+\subsection{Renderizado de la respuesta}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Campo} & \textbf{Qué debe hacer el frontend} \\
+\midrule
+\texttt{respuesta}        & Texto del bot. \textbf{Sustituir placeholders antes de mostrar} (ver tabla sección 6). \\
+\texttt{piezas}           & Si no está vacío, renderizar tarjetas con imagen, título, precio y enlace. \\
+\texttt{sugerencias}      & Si \texttt{pedirSugerencias} es \texttt{true}, mostrar como botones. Al pulsar uno, enviarlo como mensaje. \\
+\texttt{pedirWhatsapp}    & Si es \texttt{true}, mostrar botón WhatsApp aunque el texto no contenga \texttt{[[WHATSAPP]]}. \\
+\texttt{campoFaltante}    & Opcional: usar para poner placeholder descriptivo en el input (ej: ``Escribe la marca\ldots''). \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Sustitución de placeholders}
+
+Antes de insertar \texttt{respuesta} en el DOM, sustituir cada placeholder por su valor real:
+
+\begin{lstlisting}[style=js, caption={Función de sustitución de placeholders}]
+function aplicarPlaceholders(texto, config) {
+  // config = window.ChatBotConfig (inyectado por el plugin WordPress)
+  // Nombres de campo reales — camelCase, no snake_case
+  const mapa = {
+    "[[WHATSAPP]]":          botonWhatsApp(config.whatsappNumber),
+    "[[TELEFONO]]":          `<a href="tel:${config.telefono?.replace(/\s/g,'')}">${config.telefono}</a>`,
+    "[[EMAIL]]":             `<a href="mailto:${config.email}">${config.email}</a>`,
+    "[[HORARIO]]":           config.horario,
+    "[[MAPS]]":              botonUrl(config.mapsUrl, "Como llegar"),
+    "[[SOBRE_NOSOTROS]]":    botonUrl(config.sobreNosotrosUrl, "Sobre nosotros"),
+    "[[BAJAS_TASACIONES]]":  botonUrl(config.bajasUrl, "Bajas y tasaciones"),
+    "[[CAMPA]]":             botonUrl(config.campaUrl, "Campa"),
+  };
+  let resultado = texto;
+  for (const [placeholder, valor] of Object.entries(mapa)) {
+    if (!valor) {
+      // si el dato no esta configurado, eliminar la frase entera que contiene el placeholder
+      resultado = resultado.replace(new RegExp(`[^.]*${escaparRegex(placeholder)}[^.]*\\.?`, "g"), "");
+    } else {
+      resultado = resultado.replaceAll(placeholder, valor);
+    }
+  }
+  return resultado.trim();
+}
+\end{lstlisting}
+
+\subsection{Estado persistido en localStorage}
+
+El widget guarda estado en el navegador del usuario entre visitas:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Clave} & \textbf{Contenido} & \textbf{Notas} \\
+\midrule
+\texttt{neto\_chat\_history}        & Historial de mensajes    & Lo gestiona react-chatbotify automáticamente \\
+\texttt{neto\_chat\_contexto}       & Contexto del último turno & Se envía al backend como \texttt{contexto} \\
+\texttt{neto\_chat\_inicio\_sesion} & Timestamp de inicio       & La sesión expira a las 8 horas \\
+\texttt{neto\_historial\_piezas}    & Resultados de búsqueda    & Permite reasociar piezas al historial al recargar \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+El botón ↺ del chat limpia todas estas claves y reinicia la conversación. Para hacerlo desde código externo basta con borrar las cuatro claves y recargar la página.
+
+\subsection{Manejo de errores HTTP}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+\textbf{Código} & \textbf{Causa} & \textbf{Qué mostrar al usuario} \\
+\midrule
+\texttt{403} & API key incorrecta o dominio no registrado & Error de configuración (avisar al admin) \\
+\texttt{429} & Demasiadas peticiones & ``Por favor espera unos segundos'' \\
+\texttt{503} & Backend caído o API del catálogo inaccesible & ``Servicio temporalmente no disponible'' \\
+\texttt{400} & Body malformado (bug en el frontend) & Registrar en consola, no mostrar al usuario \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ============================================================
+\section{Renderizado de piezas}
+% ============================================================
+
+Cuando \texttt{piezas} no está vacío, mostrar una lista de tarjetas. Cada objeto pieza tiene:
+
+\begin{lstlisting}[style=json]
+{
+  "id":     12345,
+  "titulo": "ALTERNADOR FORD FOCUS",
+  "precio": "85.50EUR",
+  "imagen": "https://desguace.com/img/12345.jpg",
+  "url":    "https://desguace.com/recambios/12345/"
+}
+\end{lstlisting}
+
+Cada tarjeta muestra la imagen de la pieza, el título y el precio, con un botón ``Ver pieza'' que abre la URL en nueva pestaña. El backend limita la respuesta a las primeras piezas encontradas; el campo \texttt{metadata.totalReal} contiene el total real y permite mostrar al usuario un texto del tipo ``Mostrando 4 de 12 resultados''.
+
+\begin{tcolorbox}[colback=grisclaro, colframe=grismedio, fontupper=\small]
+  \textbf{Consulta de ejemplo:} \textit{``busco un mando volante vw golf 2019''} --- la respuesta incluye más tarjetas de las que caben en una sola captura.
+\end{tcolorbox}
+\begin{figure}[H]
+\centering
+\adjustbox{max width=\linewidth}{\includegraphics{img_piezas.png}}
+\caption{Tarjetas de piezas devueltas por la búsqueda (resultado parcial)}
+\end{figure}
+
+% ============================================================
+\section{Checklist de integración frontend}
+% ============================================================
+
+\begin{tcolorbox}[colback=moradoclaro!50, colframe=moradooscuro,
+                  title={\small\bfseries Lista de verificación --- equipo frontend}]
+\begin{itemize}[label=$\square$, noitemsep]
+  \item Plugin instalado y activo en WordPress del cliente
+  \item Todos los datos de contacto configurados en el plugin (ver Sección 10, Paso 3)
+  \item \texttt{api\_key} y \texttt{backend\_url} correctos en el plugin
+  \item La llamada a \texttt{/api/chat} envía los headers correctos (\texttt{api-key}, \texttt{Origin})
+  \item \texttt{nuevoContexto} se guarda tras cada respuesta y se envía en la siguiente petición
+  \item \texttt{respuesta} pasa por \texttt{aplicarPlaceholders()} antes de mostrarse
+  \item Los datos no configurados eliminan la frase (no muestran \texttt{[[PLACEHOLDER]]})
+  \item Las tarjetas de piezas se renderizan con imagen, título, precio y enlace
+  \item Las sugerencias se muestran como botones cuando \texttt{pedirSugerencias} es \texttt{true}
+  \item El botón WhatsApp aparece cuando \texttt{pedirWhatsapp} es \texttt{true}
+  \item Los errores HTTP (403, 429, 503) muestran un mensaje amigable al usuario
+  \item Prueba completa de onboarding superada (ver Sección 10)
+\end{itemize}
+\end{tcolorbox}
+
+\vspace{1.5cm}
+\begin{center}
+{\small\color{gray}
+Documento generado en Junio 2026 --- neto-backend v1.0
+}
+\end{center}
+
+\end{document}
+\end{center}
+
+\end{document}

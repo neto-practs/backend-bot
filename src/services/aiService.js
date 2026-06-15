@@ -194,7 +194,15 @@ const seleccionRespuestaPremium = async (
 
     const campoFaltante = determinarCampoFaltante(contextoAnteriorParsed);
 
-    // 0. CORTOCIRCUITO: detección determinista de referencia OEM sin pasar por el router.
+    // 0a. CORTOCIRCUITO BKD: código de motor diesel VW/Audi, tratado siempre como referencia directa.
+    //     "BKD" no cumple los criterios OEM genéricos (solo letras, 3 chars), por eso se detecta aparte.
+    if (/\bBKD\b/i.test(promptUsuario)) {
+      logger.info({ reqId }, `Cortocircuito BKD: código de motor detectado en "${promptUsuario}".`);
+      const contextoBKD = { articulo: null, marca: null, modelo: null, ano: null, version: null, referencia: "BKD" };
+      return await ejecutarBusquedaAPI(contextoBKD, `Buscando por referencia BKD...`, reqId, cliente);
+    }
+
+    // 0b. CORTOCIRCUITO: detección determinista de referencia OEM sin pasar por el router.
     //    Regla: mensaje que, quitando espacios y guiones, es alfanumérico puro y tiene ≥7 chars,
     //    Y contiene al menos un dígito (descarta palabras sueltas) Y no es un año de 4 dígitos.
     //    Además: en mensajes con espacios, ninguna palabra suelta puede ser texto puro (≥3 letras sin dígitos),
