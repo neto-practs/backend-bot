@@ -19,6 +19,51 @@ const CLIENTES = {
     backendApiKey: "12345",
   },
 
+  "https://desguacesmelli.com": {
+    id: "cliente_002_premium",
+    storeUrl: "https://desguacesmelli.com/",
+    backendApiKey: "12345",
+  },
+
+  "https://automocionescatoira.com": {
+    id: "cliente_003_premium",
+    storeUrl: "https://automocionescatoira.com/",
+    backendApiKey: "pwh5ijLYT1K5",
+  },
+
+  "https://desguacealegre.es": {
+    id: "cliente_004_premium",
+    storeUrl: "https://desguacealegre.es/",
+    backendApiKey: "970lkQc6oDGh",
+  },
+
+  "https://desguacespalomino.com": {
+    id: "cliente_005_premium",
+    storeUrl: "https://desguacespalomino.com/",
+    backendApiKey: "THg9DHl1L5i4",
+  },
+
+  "https://desguacesvilanova.com": {
+    id: "cliente_006_premium",
+    storeUrl: "https://desguacesvilanova.com/",
+    backendApiKey: "PvPWhQ66J4am",
+  },
+
+
+  "https://desguacemiguel.es": {
+    id: "cliente_007_premium",
+    storeUrl: "https://desguacemiguel.es/",
+    backendApiKey: "vEAhpl8zQC53",
+  },
+
+
+  "https://rebagliato.com": {
+    id: "cliente_008_premium",
+    storeUrl: "https://rebagliato.com/",
+    backendApiKey: "uII7nu41rYL9",
+  },
+
+
   // Entrada para desarrollo local: permite que el frontend en localhost conecte al backend
   // usando el catálogo real de producción para tener datos con los que probar.
   "http://localhost:5173": {

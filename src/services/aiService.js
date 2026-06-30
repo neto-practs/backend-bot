@@ -152,7 +152,7 @@ const ejecutarBusquedaAPI = async (busquedaBD, mensajeParaUsuario, reqId, client
 
   const resultado = {
     respuesta: mensajeParaUsuario,
-    piezas: formatearParaReact(respuestaAPI.piezas.slice(0, 4)),
+    piezas: formatearParaReact(respuestaAPI.piezas.slice(0, 4), cliente.storeUrl),
     sugerencias: [],
     pedirSugerencias: false,
     metadata: { totalReal: respuestaAPI.total, queryLimpia: query },

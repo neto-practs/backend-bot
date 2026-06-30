@@ -30,7 +30,7 @@ app.use(cors({
       callback(null, true);
     } else {
       // Si no existe, el navegador bloquea la petición antes de que llegue a tu servidor
-      callback(new Error('Bloqueado por CORS: Dominio no registrado.'));
+      callback(new Error(`Bloqueado por CORS: Dominio no registrado -> ${origin}`));
     }
   },
   credentials: true

@@ -1,6 +1,11 @@
-const formatearParaReact = (arrayPiezas) => {
-  const STORE_URL =
-    process.env.STORE_BASE_URL || "https://dev4premium.desguacesyrecambios.com";
+const formatearParaReact = (arrayPiezas, storeUrl) => {
+  // El storeUrl del cliente manda; el env/default solo es un último recurso.
+  // Quitamos la barra final para no generar URLs con doble barra (//recambios/).
+  const STORE_URL = (
+    storeUrl ||
+    process.env.STORE_BASE_URL ||
+    "https://dev4premium.desguacesyrecambios.com"
+  ).replace(/\/$/, "");
 
   return arrayPiezas.map((pieza) => {
     const datosCoche = [pieza.marca, pieza.modelo]

@@ -111,7 +111,7 @@ const seleccionRespuesta = async (mensaje, contextoAnterior, reqId, cliente) => 
       };
     } else {
       const total = parseInt(respuestaAPI.total) || respuestaAPI.piezas.length;
-      const piezasFormateadas = formatearParaReact(respuestaAPI.piezas.slice(0, 4));
+      const piezasFormateadas = formatearParaReact(respuestaAPI.piezas.slice(0, 4), cliente.storeUrl);
 
       resultadoFinal = {
         respuesta: construirMensajeResultado(total, esPorReferencia, desglose),
