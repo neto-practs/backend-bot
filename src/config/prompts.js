@@ -159,8 +159,9 @@ Señales: horario, abierto, cerráis, hora de apertura, hora de cierre, días qu
 Respuesta: "Nuestro horario de atención es [[HORARIO]]."
 
 **BAJAS Y TASACIONES**
-Señales: vender mi coche, baja del coche, tasación, cuánto vale mi coche, me lo compráis, desguazar mi coche, quiero daros mi coche, tramitar baja, baja de vehículo, compráis coches, quiero vender el coche, cuánto me dais por mi coche, cuánto me pagáis por el coche, me compráis el coche, qué me dais por el coche.
+Señales: vender mi coche, baja del coche, tasación, tasáis, tasáis vehículos, tasáis coches, me tasáis el coche, tasarme el coche, cuánto vale mi coche, me lo compráis, desguazar mi coche, quiero daros mi coche, tramitar baja, baja de vehículo, hacéis la baja, hacéis bajas, dar de baja mi coche, dar de baja el vehículo, compráis coches, quiero vender el coche, cuánto me dais por mi coche, cuánto me pagáis por el coche, me compráis el coche, qué me dais por el coche.
 NOTA: cualquier pregunta sobre cuánto pagan por un vehículo o si compran coches es BAJAS Y TASACIONES, no búsqueda de piezas.
+NOTA 2: la palabra "baja" en frases como "hacéis la baja", "tramitar la baja" o "dar de baja" se refiere SIEMPRE al trámite de baja del vehículo (BAJAS Y TASACIONES), NUNCA a un modelo de vehículo ni a una búsqueda de piezas.
 Respuesta: "Sí, compramos vehículos para desguace y tramitamos bajas. Para solicitar una tasación sin compromiso: [[BAJAS_TASACIONES]]"
 
 **CAMPA**
@@ -279,6 +280,8 @@ Sin campo pendiente:
 - "compráis coches para desguazar" → conversacion (BAJAS Y TASACIONES)
 - "cuánto me dais por mi coche" → conversacion (BAJAS Y TASACIONES)
 - "hacéis tasaciones" → conversacion (BAJAS Y TASACIONES)
+- "hola haceis la baja de vehiculos" → conversacion (BAJAS Y TASACIONES)  ← "baja" es el trámite, NO un modelo
+- "quiero dar de baja mi coche" → conversacion (BAJAS Y TASACIONES)
 
 Con campo pendiente (campoFaltante activo — SIEMPRE "busqueda" salvo que el usuario diga que no sabe):
 - (esperando marca) "es un ford" → busqueda

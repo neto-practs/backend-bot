@@ -10,6 +10,7 @@ const { VALORES_NULOS } = require("../config/constants");
 const { generarRespuestaUsuario, determinarCampoFaltante } = require("../utils/dialogHelper");
 const { validarYCorregir } = require("../utils/correctorOrtografico");
 const { validarVehiculo, inferirMarcaDeModelo, esPosibleVersion, extraerModeloDeVersion, buscarModeloEnMensaje } = require("../utils/validadorVehiculo");
+const { textNormalize } = require("../utils/textNormalizer");
 
 const RUNPOD_IA_URL   = process.env.RUNPOD_IA_URL;
 const RUNPOD_IA_TOKEN = process.env.RUNPOD_IA_TOKEN;
@@ -218,6 +219,30 @@ const seleccionRespuestaPremium = async (
       logger.info({ reqId }, `Cortocircuito OEM: "${promptUsuario}" → referencia detectada sin router.`);
       const contextoOEM = { articulo: null, marca: null, modelo: null, ano: null, version: null, referencia: mensajeLimpio };
       return await ejecutarBusquedaAPI(contextoOEM, `Buscando por referencia OEM: ${mensajeLimpio}`, reqId, cliente);
+    }
+
+    // 0c. CORTOCIRCUITO BAJAS/TASACIONES: el router LLM falla a veces con variantes
+    //     ("tasáis vehículos?", "hacéis la baja?"), así que se detecta de forma determinista.
+    //     Patrones sobre texto normalizado (sin tildes, minúsculas):
+    //     - cualquier forma del verbo tasar / tasación
+    //     - verbo de trámite + "baja" ("dar de baja", "hacéis la baja", "tramitar baja")
+    //     - "baja(s) de/del vehículo/coche/moto"
+    const mensajeNorm = textNormalize(promptUsuario);
+    const esBajasTasaciones =
+      /\btasa(is|r|n|s|cion|ciones|dme|rme|riais)\b/.test(mensajeNorm) ||
+      /\b(dar|dais|dan|das|tramitar|tramitais|tramitan|haceis|hacen|gestionais|gestionan|gestionar)\b[\w\s]{0,15}\bbajas?\b/.test(mensajeNorm) ||
+      /\bbajas?\s+(de|del)\s+(vehiculo|coche|moto|furgoneta|camion)s?\b/.test(mensajeNorm);
+    if (esBajasTasaciones) {
+      logger.info({ reqId }, `Cortocircuito BAJAS/TASACIONES: "${promptUsuario}" → respuesta directa sin router.`);
+      return {
+        respuesta: "Sí, compramos vehículos para desguace y tramitamos bajas. Para solicitar una tasación sin compromiso: [[BAJAS_TASACIONES]]",
+        piezas: [],
+        sugerencias: [],
+        campoFaltante,
+        pedirSugerencias: false,
+        metadata: { totalReal: 0, queryLimpia: "" },
+        nuevoContexto: typeof contextoAnterior === "string" ? contextoAnterior : JSON.stringify(contextoAnteriorParsed),
+      };
     }
 
     // 1. LLAMADA AL ENRUTADOR

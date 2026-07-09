@@ -100,12 +100,18 @@ const MARCAS_SOPORTADAS = new Set(
   })
 );
 
+// Palabras comunes del español que coinciden con nombres de modelo del catálogo
+// (ej: "baja" = KTM Baja 600). Nunca se usan para inferir vehículo desde el mensaje:
+// "hacéis la baja de vehículos" no debe convertirse en un KTM Baja.
+const TOKENS_MODELO_VETADOS = new Set(["baja", "campo"]);
+
 const INDICE_MODELO_A_MARCAS = {};
 for (const [marca, modelos] of Object.entries(MAPA_VEHICULOS)) {
   if (!MARCAS_SOPORTADAS.has(marca)) continue; // ignorar marcas no soportadas
   for (const modeloCatalogo of Object.keys(modelos)) {
     const primerToken = textNormalize(modeloCatalogo).split(/\s+/)[0];
     if (!primerToken || primerToken.length < 2) continue;
+    if (TOKENS_MODELO_VETADOS.has(primerToken)) continue; // palabra común, no inferible
     if (!INDICE_MODELO_A_MARCAS[primerToken]) INDICE_MODELO_A_MARCAS[primerToken] = new Set();
     INDICE_MODELO_A_MARCAS[primerToken].add(marca);
   }
