@@ -13,6 +13,20 @@ const DEFAULT_SUGERENCIAS_TIMEOUT = Number(process.env.SUGERENCIAS_TIMEOUT_MS) |
 const DEFAULT_API_TIMEOUT = Number(process.env.API_TIMEOUT_MS) || 10000;
 
 /**
+ * Construye la URL del endpoint de piezas del cliente.
+ * Las webs antiguas exponen la API bajo /desguacesv7/ en lugar de /desguacesv8/;
+ * el flag `isV7` del cliente (config en clientes.js) selecciona la ruta correcta.
+ * La respuesta JSON es idéntica en ambas versiones, así que solo cambia el path.
+ * @param {Object} cliente - Config del cliente (storeUrl, isV7)
+ * @returns {string}
+ */
+const construirUrlPiezas = (cliente) => {
+  const version = cliente.isV7 ? "desguacesv7" : "desguacesv8";
+  const base = String(cliente.storeUrl).replace(/\/$/, "");
+  return `${base}/${version}/api/recambios/piezas/`;
+};
+
+/**
  * Consulta la base de datos de piezas de un cliente específico.
  * @param {Object} parametrosBusqueda - Filtros de la pieza (q: "alternador bmw", etc.)
  * @param {string} reqId - ID de trazabilidad para los logs
@@ -25,7 +39,7 @@ const consultarAPI = async (parametrosBusqueda, reqId, cliente, maxIntentos = 3)
     throw new Error("Error de configuracion del cliente");
   }
 
-  const urlDelCliente = `${cliente.storeUrl}/desguacesv8/api/recambios/piezas/`;
+  const urlDelCliente = construirUrlPiezas(cliente);
 
   if (estadoCircuito === ESTADOS_CIRCUITO.ABIERTO) {
     if (Date.now() < tiempoBloqueoHasta) {
@@ -186,7 +200,7 @@ const obtenerSugerencias = async (busquedaBD, campoFaltante, cliente) => {
   if (partesBusqueda.length === 0) return [];
 
   const query = partesBusqueda.join(" ");
-  const urlDelCliente = `${cliente.storeUrl}/desguacesv8/api/recambios/piezas/`;
+  const urlDelCliente = construirUrlPiezas(cliente);
 
   try {
     logger.info(`[Sugerencias] campo='${campoFaltante}' query="${query}"`);
